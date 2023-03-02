@@ -1,0 +1,7 @@
+node_modules
+.*
+/nix
+/review
+/tests
+vite.config.ts
+src/Main.elm.d.ts

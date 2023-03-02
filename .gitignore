@@ -1,0 +1,27 @@
+# Logs
+logs
+*.log*
+
+# Deps
+node_modules
+elm-stuff
+
+# Artifacts
+dist
+dist-ssr
+
+# Env
+*.local
+.envrc
+
+# Editors
+.vscode
+.idea
+.nova
+
+# Misc
+.DS_Store
+.nix-*
+
+# Ensure we never have stale type declarations for our ports
+src/Main.elm.d.ts

@@ -1,0 +1,11 @@
+# humanstxt.org/
+# The humans responsible & technology
+
+# TEAM
+
+    Hans Hoffman -- developer -- @hansjhoffman
+
+
+# TECHNOLOGY
+
+    Elm, TailwindCSS
