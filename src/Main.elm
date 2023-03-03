@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Html
+import InteropPorts
 import Json.Decode as Decode
 
 
@@ -15,7 +16,12 @@ type alias Model =
 
 init : Decode.Value -> ( Model, Cmd Msg )
 init flags =
-    ( {}, Cmd.none )
+    case InteropPorts.decodeFlags flags of
+        Err _ ->
+            ( {}, Cmd.none )
+
+        Ok _ ->
+            ( {}, Cmd.none )
 
 
 
@@ -28,7 +34,9 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    ( model, Cmd.none )
+    case msg of
+        NoOp ->
+            ( model, Cmd.none )
 
 
 
