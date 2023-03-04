@@ -1,5 +1,8 @@
 module Api.Endpoint exposing
-    ( Endpoint
+    ( AccessToken
+    , Endpoint
+    , Environment
+    , Space
     , auth
     , authDecoder
     , environmentDecoder
@@ -13,13 +16,14 @@ import Http exposing (Body, Expect, Header)
 import Json.Decode as Decode
     exposing
         ( Decoder
+        , at
         , int
         , list
         , maybe
         , string
         , succeed
         )
-import Json.Decode.Pipeline exposing (optional, required)
+import Json.Decode.Pipeline exposing (optional, required, requiredAt)
 import Url.Builder exposing (QueryParameter)
 
 
@@ -92,8 +96,8 @@ url paths queryParams =
 -- ENDPOINTS
 
 
-auth : String -> String -> Endpoint
-auth clientId secret =
+auth : Endpoint
+auth =
     url [ "auth", "access-token" ] []
 
 
@@ -120,11 +124,12 @@ authDecoder : Decoder AccessToken
 authDecoder =
     succeed AccessToken
         |> required "accessToken" string
+        |> at [ "data" ]
 
 
 environmentsDecoder : Decoder (List Environment)
 environmentsDecoder =
-    list environmentDecoder
+    at [ "data" ] (list environmentDecoder)
 
 
 environmentDecoder : Decoder Environment
@@ -137,7 +142,7 @@ environmentDecoder =
 
 spacesDecoder : Decoder (List Space)
 spacesDecoder =
-    list spaceDecoder
+    at [ "data" ] (list spaceDecoder)
 
 
 spaceDecoder : Decoder Space

@@ -1,10 +1,10 @@
-module Api exposing (get)
+module Api exposing (get, post)
 
 {-| This module exposes wrappers around Http methods
 -}
 
 import Api.Endpoint as Endpoint exposing (Endpoint)
-import Http
+import Http exposing (Body)
 import Json.Decode exposing (Decoder)
 import RemoteData as RD exposing (WebData)
 
@@ -22,10 +22,10 @@ get url toMsg decoder =
         }
 
 
-post : Endpoint -> (WebData a -> msg) -> Decoder a -> Cmd msg
-post url toMsg decoder =
+post : Endpoint -> Body -> (WebData a -> msg) -> Decoder a -> Cmd msg
+post url body toMsg decoder =
     Endpoint.request
-        { body = Http.emptyBody
+        { body = body
         , expect = Http.expectJson (RD.fromResult >> toMsg) decoder
         , headers = []
         , method = "POST"
