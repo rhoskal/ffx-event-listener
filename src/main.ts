@@ -1,7 +1,9 @@
 import PubNub from "pubnub";
 import * as E from "fp-ts/Either";
+import * as IO from "fp-ts/IO";
 import * as J from "fp-ts/Json";
 import { pipe } from "fp-ts/function";
+import { match } from "ts-pattern";
 
 import { Elm } from "./Main.elm";
 import * as C from "./codecs";
@@ -12,9 +14,19 @@ const app = Elm.Main.init({
   flags: null,
 });
 
-// app.ports.interopFromElm.subscribe((_fromElm) => { });
+const openExternalLink =
+  (url: string): IO.IO<void> =>
+  () => {
+    return window.open(url, "_blank")?.focus();
+  };
 
-// app.ports.interopFromElm.unsubscribe((_fromElm) => { });
+app.ports.interopFromElm.subscribe((fromElm) => {
+  return match(fromElm)
+    .with({ tag: "openExternalLink" }, ({ data }) => openExternalLink(data.url)())
+    .exhaustive();
+});
+
+app.ports.interopFromElm.unsubscribe((_fromElm) => {});
 
 const pubnub = new PubNub({
   subscribeKey: "mySubscribeKey",

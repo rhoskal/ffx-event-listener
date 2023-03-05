@@ -23,7 +23,7 @@ interop =
 
 
 type FromElm
-    = NoOpFrom
+    = OpenExternalLink String
 
 
 type ToElm
@@ -67,7 +67,15 @@ type alias Flags =
 
 fromElm : Encoder FromElm
 fromElm =
-    TsEncode.null
+    TsEncode.union
+        (\vExternalLink value ->
+            case value of
+                OpenExternalLink string ->
+                    vExternalLink string
+        )
+        |> TsEncode.variantTagged "openExternalLink"
+            (TsEncode.object [ TsEncode.required "url" identity TsEncode.string ])
+        |> TsEncode.buildUnion
 
 
 

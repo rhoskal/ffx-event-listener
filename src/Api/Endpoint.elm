@@ -3,13 +3,16 @@ module Api.Endpoint exposing
     , Endpoint
     , Environment
     , Space
+    , SubscriptionCreds
     , auth
     , authDecoder
-    , environmentDecoder
+    , environmentsDecoder
+    , getSubscriptionCreds
     , listEnvironments
     , listSpaces
     , request
     , spacesDecoder
+    , subscriptionCredsDecoder
     )
 
 import Http exposing (Body, Expect, Header)
@@ -46,10 +49,17 @@ type alias Space =
     { id : String
     , workbooksCount : Maybe Int
     , filesCount : Maybe Int
-    , createdByUserId : Maybe String
+    , createdByUserName : Maybe String
     , createdAt : Maybe String
     , environmentId : String
     , name : Maybe String
+    }
+
+
+type alias SubscriptionCreds =
+    { accountId : String
+    , subscribeKey : String
+    , token : String
     }
 
 
@@ -116,15 +126,24 @@ listSpaces environmentId =
         ]
 
 
+getSubscriptionCreds : String -> Endpoint
+getSubscriptionCreds spaceId =
+    url [ "spaces", spaceId, "subscription" ] []
+
+
 
 -- DECODERS
 
 
 authDecoder : Decoder AccessToken
 authDecoder =
-    succeed AccessToken
-        |> required "accessToken" string
-        |> at [ "data" ]
+    let
+        decoder : Decoder AccessToken
+        decoder =
+            succeed AccessToken
+                |> required "accessToken" string
+    in
+    at [ "data" ] decoder
 
 
 environmentsDecoder : Decoder (List Environment)
@@ -151,7 +170,20 @@ spaceDecoder =
         |> required "id" string
         |> optional "workbooksCount" (maybe int) Nothing
         |> optional "filesCount" (maybe int) Nothing
-        |> optional "createdByUserId" (maybe string) Nothing
+        |> optional "createdByUserName" (maybe string) Nothing
         |> optional "createdAt" (maybe string) Nothing
         |> required "environmentId" string
         |> optional "name" (maybe string) Nothing
+
+
+subscriptionCredsDecoder : Decoder SubscriptionCreds
+subscriptionCredsDecoder =
+    let
+        decoder : Decoder SubscriptionCreds
+        decoder =
+            succeed SubscriptionCreds
+                |> required "accountId" string
+                |> required "subscribeKey" string
+                |> required "token" string
+    in
+    at [ "data" ] decoder
