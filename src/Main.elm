@@ -4,11 +4,10 @@ import Api
 import Api.Endpoint as Endpoint
     exposing
         ( AccessToken
-        , Environment
-        , Space
         , SubscriptionCreds
         )
 import Browser
+import Environment exposing (Environment)
 import Html exposing (..)
 import Html.Attributes as Attr
 import Html.Events as Events
@@ -19,6 +18,7 @@ import InteropPorts
 import Json.Decode as Decode
 import Json.Encode as Encode
 import RemoteData as RD exposing (RemoteData(..), WebData)
+import Space exposing (Space)
 
 
 
@@ -118,19 +118,19 @@ update msg model =
 
         SelectedEnvironment env ->
             ( { model | selectedEnvironment = Just env }
-            , Api.get (Endpoint.listSpaces env.id) GotSpacesResponse Endpoint.spacesDecoder
+            , Space.list env.id GotSpacesResponse
             )
 
         SelectedSpace space ->
             ( { model | selectedSpace = Just space }
-            , Api.get (Endpoint.getSubscriptionCreds space.id) GotSubscriptionCredsResponse Endpoint.subscriptionCredsDecoder
+            , Api.get (Endpoint.getSubscriptionCreds <| Space.unwrap space.id) GotSubscriptionCredsResponse Endpoint.subscriptionCredsDecoder
             )
 
         GotAuthResponse response ->
             case response of
                 Success _ ->
                     ( { model | accessToken = response }
-                    , Api.get Endpoint.listEnvironments GotEnvironmentsResponse Endpoint.environmentsDecoder
+                    , Environment.list GotEnvironmentsResponse
                     )
 
                 Failure error ->
@@ -257,7 +257,7 @@ viewMeta selectedEnvironment selectedSpace =
     let
         spaceName : String
         spaceName =
-            Maybe.withDefault ("[Unnamed — " ++ selectedSpace.id ++ "]") selectedSpace.name
+            Maybe.withDefault ("[Unnamed — " ++ Space.unwrap selectedSpace.id ++ "]") selectedSpace.name
 
         environmentName : String
         environmentName =
@@ -265,7 +265,7 @@ viewMeta selectedEnvironment selectedSpace =
 
         createdAt : String
         createdAt =
-            Maybe.withDefault "[Date Unknown]" selectedSpace.createdAt
+            Maybe.withDefault "[Date Unknown]" (Just "10 Jan 2023")
 
         createdBy : String
         createdBy =
@@ -297,7 +297,7 @@ viewMeta selectedEnvironment selectedSpace =
                 [ button
                     [ mkTestAttribute "btn-view-space"
                     , Attr.class "inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm"
-                    , Events.onClick (OpenExternalLink <| "https://spaces.flatfile.com/space/" ++ selectedSpace.id)
+                    , Events.onClick (OpenExternalLink <| "https://spaces.flatfile.com/space/" ++ Space.unwrap selectedSpace.id)
                     ]
                     [ Icon.defaults
                         |> Icon.withSize 20
@@ -585,26 +585,24 @@ viewEventsTable model =
 
 view : Model -> Browser.Document Msg
 view model =
-    let
-        env : Environment
-        env =
-            Environment "us_env_GHasdfyU" "us_acc_FBClpjku" "Some Env Name"
-
-        space : Space
-        space =
-            Space "us_sp_UxfreSbn" Nothing Nothing Nothing (Just "10 Jan 2023") "us_env_GHasdfyU" Nothing
-    in
+    -- let
+    --     env : Environment
+    --     env =
+    --         Environment "us_env_GHasdfyU" "us_acc_FBClpjku" "Some Env Name"
+    --     space : Space
+    --     space =
+    --         Space "us_sp_UxfreSbn" Nothing Nothing Nothing (Just "10 Jan 2023") "us_env_GHasdfyU" Nothing
+    -- in
     { title = "Hello"
     , body =
         [ div [ Attr.class "" ]
-            [ section [ Attr.class "", mkTestAttribute "section-events" ]
-                [ viewMeta env space
-                , viewEventsTable model
-                ]
+            -- [ section [ Attr.class "", mkTestAttribute "section-events" ]
+            --     [ viewMeta env space
+            --     , viewEventsTable model
+            --     ]
+            -- ]
+            [ section [ Attr.class "", mkTestAttribute "section-auth" ] [ viewAuth model ]
             ]
-
-        -- [ section [ Attr.class "", mkTestAttribute "section-auth" ] [ viewAuth model ]
-        -- ]
         ]
     }
 

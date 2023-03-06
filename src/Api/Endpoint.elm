@@ -1,17 +1,13 @@
 module Api.Endpoint exposing
     ( AccessToken
     , Endpoint
-    , Environment
-    , Space
     , SubscriptionCreds
     , auth
     , authDecoder
-    , environmentsDecoder
     , getSubscriptionCreds
     , listEnvironments
     , listSpaces
     , request
-    , spacesDecoder
     , subscriptionCredsDecoder
     )
 
@@ -36,24 +32,6 @@ type Endpoint
 
 type AccessToken
     = AccessToken String
-
-
-type alias Environment =
-    { id : String
-    , accountId : String
-    , name : String
-    }
-
-
-type alias Space =
-    { id : String
-    , workbooksCount : Maybe Int
-    , filesCount : Maybe Int
-    , createdByUserName : Maybe String
-    , createdAt : Maybe String
-    , environmentId : String
-    , name : Maybe String
-    }
 
 
 type alias SubscriptionCreds =
@@ -144,36 +122,6 @@ authDecoder =
                 |> required "accessToken" string
     in
     at [ "data" ] decoder
-
-
-environmentsDecoder : Decoder (List Environment)
-environmentsDecoder =
-    at [ "data" ] (list environmentDecoder)
-
-
-environmentDecoder : Decoder Environment
-environmentDecoder =
-    succeed Environment
-        |> required "id" string
-        |> required "accountId" string
-        |> required "name" string
-
-
-spacesDecoder : Decoder (List Space)
-spacesDecoder =
-    at [ "data" ] (list spaceDecoder)
-
-
-spaceDecoder : Decoder Space
-spaceDecoder =
-    succeed Space
-        |> required "id" string
-        |> optional "workbooksCount" (maybe int) Nothing
-        |> optional "filesCount" (maybe int) Nothing
-        |> optional "createdByUserName" (maybe string) Nothing
-        |> optional "createdAt" (maybe string) Nothing
-        |> required "environmentId" string
-        |> optional "name" (maybe string) Nothing
 
 
 subscriptionCredsDecoder : Decoder SubscriptionCreds
