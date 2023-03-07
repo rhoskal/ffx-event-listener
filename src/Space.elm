@@ -11,7 +11,7 @@ import Environment exposing (EnvironmentId, environmentIdDecoder)
 import Iso8601
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
-import RemoteData as RD exposing (WebData)
+import RemoteData exposing (WebData)
 import Time
 
 

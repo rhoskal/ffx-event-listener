@@ -1,23 +1,21 @@
 module Main exposing (..)
 
 import Api
-import Api.Endpoint as Endpoint
-    exposing
-        ( AccessToken
-        , SubscriptionCreds
-        )
+import Api.Endpoint as Endpoint exposing (AccessToken, SubscriptionCreds)
 import Browser
 import Environment exposing (Environment)
 import Html exposing (..)
 import Html.Attributes as Attr
+import Html.Attributes.Extra as AttrExtra
 import Html.Events as Events
+import Html.Extra
 import Http
 import Icon
 import InteropDefinitions
 import InteropPorts
 import Json.Decode as Decode
 import Json.Encode as Encode
-import RemoteData as RD exposing (RemoteData(..), WebData)
+import RemoteData exposing (RemoteData(..), WebData)
 import Space exposing (Space)
 
 
@@ -29,10 +27,13 @@ type alias Model =
     { clientId : String
     , secretKey : String
     , accessToken : WebData AccessToken
-    , environments : WebData (List Environment)
-    , spaces : WebData (List Space)
+    , showSecret : Bool
+    , showEnvironmentChoices : Bool
     , selectedEnvironment : Maybe Environment
+    , environments : WebData (List Environment)
+    , showSpaceChoices : Bool
     , selectedSpace : Maybe Space
+    , spaces : WebData (List Space)
     , events : List String
     , subscriptionCreds : WebData SubscriptionCreds
     , expandedEventId : Maybe String
@@ -44,10 +45,13 @@ initialModel =
     { clientId = ""
     , secretKey = ""
     , accessToken = NotAsked
-    , environments = NotAsked
-    , spaces = NotAsked
+    , showSecret = False
+    , showEnvironmentChoices = False
     , selectedEnvironment = Nothing
+    , environments = NotAsked
+    , showSpaceChoices = False
     , selectedSpace = Nothing
+    , spaces = NotAsked
     , events = []
     , subscriptionCreds = NotAsked
     , expandedEventId = Nothing
@@ -75,8 +79,11 @@ type Msg
       -- Form
     | EnteredClientId String
     | EnteredSecretKey String
+    | ToggleShowSecret
     | SelectedEnvironment Environment
+    | ToggleEnvironmentChoices
     | SelectedSpace Space
+    | ToggleSpaceChoices
       -- Http
     | SendAuthRequest
     | GotAuthResponse (WebData AccessToken)
@@ -116,15 +123,24 @@ update msg model =
         EnteredSecretKey secretKey ->
             ( { model | secretKey = secretKey }, Cmd.none )
 
+        ToggleShowSecret ->
+            ( { model | showSecret = not model.showSecret }, Cmd.none )
+
         SelectedEnvironment env ->
-            ( { model | selectedEnvironment = Just env }
+            ( { model | selectedEnvironment = Just env, showEnvironmentChoices = False }
             , Space.list env.id GotSpacesResponse
             )
+
+        ToggleEnvironmentChoices ->
+            ( { model | showEnvironmentChoices = not model.showEnvironmentChoices }, Cmd.none )
 
         SelectedSpace space ->
             ( { model | selectedSpace = Just space }
             , Api.get (Endpoint.getSubscriptionCreds <| Space.unwrap space.id) GotSubscriptionCredsResponse Endpoint.subscriptionCredsDecoder
             )
+
+        ToggleSpaceChoices ->
+            ( { model | showSpaceChoices = not model.showSpaceChoices }, Cmd.none )
 
         GotAuthResponse response ->
             case response of
@@ -133,7 +149,7 @@ update msg model =
                     , Environment.list GotEnvironmentsResponse
                     )
 
-                Failure error ->
+                Failure _ ->
                     ( { model | accessToken = response }, Cmd.none )
 
                 _ ->
@@ -184,8 +200,8 @@ mkTestAttribute key =
     Attr.attribute "data-testid" (String.toLower key)
 
 
-viewAuth : Model -> Html Msg
-viewAuth model =
+viewAuthForm : Model -> Html Msg
+viewAuthForm model =
     case model.accessToken of
         NotAsked ->
             div [ Attr.class "" ]
@@ -214,11 +230,27 @@ viewAuth model =
                                 ]
                             ]
                         , div [ Attr.class "" ]
-                            [ label
-                                [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
-                                , Attr.for "secret-key"
+                            [ div [ Attr.class "flex items-center justify-between" ]
+                                [ label
+                                    [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
+                                    , Attr.for "secret-key"
+                                    ]
+                                    [ text "Secret" ]
+                                , div
+                                    [ Attr.class "cursor-pointer text-gray-700"
+                                    , Events.onClick ToggleShowSecret
+                                    ]
+                                    [ if model.showSecret then
+                                        Icon.defaults
+                                            |> Icon.withSize 18
+                                            |> Icon.eyeClose
+
+                                      else
+                                        Icon.defaults
+                                            |> Icon.withSize 18
+                                            |> Icon.eyeOpen
+                                    ]
                                 ]
-                                [ text "Secret" ]
                             , div [ Attr.class "mt-2.5" ]
                                 [ input
                                     [ mkTestAttribute "input-secret-key"
@@ -226,7 +258,13 @@ viewAuth model =
                                     , Attr.name "secret-key"
                                     , Attr.id "secret-key"
                                     , Attr.autocomplete False
-                                    , Attr.type_ "password"
+                                    , Attr.type_
+                                        (if model.showSecret then
+                                            "text"
+
+                                         else
+                                            "password"
+                                        )
                                     , Events.onInput EnteredSecretKey
                                     ]
                                     []
@@ -319,6 +357,219 @@ viewMeta selectedEnvironment selectedSpace =
                 ]
             ]
         ]
+
+
+viewSelectEnvironment : Model -> Html Msg
+viewSelectEnvironment model =
+    case model.environments of
+        NotAsked ->
+            div [ Attr.class "" ] [ text "Not Asked" ]
+
+        Loading ->
+            div [ Attr.class "" ] [ text "Loading..." ]
+
+        Success environments ->
+            div [ Attr.class "" ]
+                [ label
+                    [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
+                    , Attr.id "listbox-environments-label"
+                    ]
+                    [ text "Environments" ]
+                , div [ Attr.class "relative mt-2" ]
+                    [ button
+                        [ Attr.class "relative w-full hover:cursor-pointer rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                        , Attr.attribute "aria-haspopup" "listbox"
+                        , AttrExtra.attributeIf model.showEnvironmentChoices <| Attr.attribute "aria-expanded" "true"
+                        , Attr.attribute "aria-labelledby" "listbox-environments-label"
+                        , Events.onClick ToggleEnvironmentChoices
+                        ]
+                        [ span [ Attr.class "inline-flex w-full truncate" ]
+                            [ span [ Attr.class "truncate select-none" ]
+                                [ text <|
+                                    Maybe.withDefault "Select..." <|
+                                        Maybe.map (\env -> env.name) model.selectedEnvironment
+                                ]
+                            , span [ Attr.class "ml-2 truncate text-gray-500" ]
+                                [ text <|
+                                    Maybe.withDefault "" <|
+                                        Maybe.map (\env -> Environment.unwrap env.id) model.selectedEnvironment
+                                ]
+                            ]
+                        , span [ Attr.class "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400" ]
+                            [ Icon.defaults
+                                |> Icon.withSize 20
+                                |> Icon.selectArrows
+                            ]
+                        ]
+                    , ul
+                        [ Attr.class "absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+                        , Attr.classList [ ( "hidden", not model.showEnvironmentChoices ) ]
+                        , Attr.tabindex -1
+                        , Attr.attribute "role" "listbox"
+                        , Attr.attribute "aria-labelledby" "listbox-environments-label"
+                        , Attr.attribute "aria-activedescendant" "listbox-option-0"
+                        ]
+                        (List.indexedMap
+                            (\idx env ->
+                                let
+                                    attrId : String
+                                    attrId =
+                                        "listbox-option-" ++ String.fromInt idx
+
+                                    envId : String
+                                    envId =
+                                        Environment.unwrap env.id
+                                in
+                                li
+                                    [ Attr.class "text-gray-900 relative cursor-default select-none py-2 pl-3 pr-9 hover:bg-indigo-100"
+                                    , Attr.id attrId
+                                    , Attr.attribute "role" "option"
+                                    , Events.onClick (SelectedEnvironment env)
+                                    ]
+                                    [ div [ Attr.class "flex font-normal" ]
+                                        [ span
+                                            [ Attr.classList
+                                                [ ( "font-semibold"
+                                                  , case model.selectedEnvironment of
+                                                        Just selected ->
+                                                            selected.id == env.id
+
+                                                        Nothing ->
+                                                            False
+                                                  )
+                                                , ( "truncate", True )
+                                                ]
+                                            ]
+                                            [ text env.name ]
+                                        , span [ Attr.class "text-gray-500 ml-2 truncate" ] [ text envId ]
+                                        ]
+                                    , case model.selectedEnvironment of
+                                        Just selected ->
+                                            Html.Extra.viewIf (selected.id == env.id) <|
+                                                span [ Attr.class "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-indigo-600" ]
+                                                    [ Icon.defaults
+                                                        |> Icon.withSize 20
+                                                        |> Icon.checkmark
+                                                    ]
+
+                                        Nothing ->
+                                            Html.Extra.nothing
+                                    ]
+                            )
+                            environments
+                        )
+                    ]
+                ]
+
+        Failure _ ->
+            div [ Attr.class "" ] [ text "Failure :(" ]
+
+
+viewSelectSpace : Model -> Html Msg
+viewSelectSpace model =
+    case model.spaces of
+        NotAsked ->
+            div [ Attr.class "" ] [ text "Not Asked" ]
+
+        Loading ->
+            div [ Attr.class "" ] [ text "Loading..." ]
+
+        Success spaces ->
+            div [ Attr.class "" ]
+                [ label
+                    [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
+                    , Attr.id "listbox-spaces-label"
+                    ]
+                    [ text "Spaces" ]
+                , div [ Attr.class "relative mt-2" ]
+                    [ button
+                        [ Attr.class "relative w-full hover:cursor-pointer rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6"
+                        , Attr.attribute "aria-haspopup" "listbox"
+                        , AttrExtra.attributeIf model.showSpaceChoices <| Attr.attribute "aria-expanded" "true"
+                        , Attr.attribute "aria-labelledby" "listbox-spaces-label"
+                        , Events.onClick ToggleSpaceChoices
+                        ]
+                        [ span [ Attr.class "inline-flex w-full truncate" ]
+                            [ span [ Attr.class "truncate select-none" ]
+                                [ text <|
+                                    Maybe.withDefault "Select..." <|
+                                        Maybe.andThen (\name -> name) <|
+                                            Maybe.map (\space -> space.name) model.selectedSpace
+                                ]
+                            , span [ Attr.class "ml-2 truncate text-gray-500" ]
+                                [ text <|
+                                    Maybe.withDefault "" <|
+                                        Maybe.map (\space -> Space.unwrap space.id) model.selectedSpace
+                                ]
+                            ]
+                        , span [ Attr.class "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400" ]
+                            [ Icon.defaults
+                                |> Icon.withSize 20
+                                |> Icon.selectArrows
+                            ]
+                        ]
+                    , ul
+                        [ Attr.class "absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm"
+                        , Attr.classList [ ( "hidden", not model.showSpaceChoices ) ]
+                        , Attr.tabindex -1
+                        , Attr.attribute "role" "listbox"
+                        , Attr.attribute "aria-labelledby" "listbox-spaces-label"
+                        , Attr.attribute "aria-activedescendant" "listbox-option-0"
+                        ]
+                        (List.indexedMap
+                            (\idx space ->
+                                let
+                                    attrId : String
+                                    attrId =
+                                        "listbox-option-" ++ String.fromInt idx
+
+                                    spaceId : String
+                                    spaceId =
+                                        Space.unwrap space.id
+                                in
+                                li
+                                    [ Attr.class "text-gray-900 relative cursor-default select-none py-2 pl-3 pr-9 hover:bg-indigo-100"
+                                    , Attr.id attrId
+                                    , Attr.attribute "role" "option"
+                                    , Events.onClick (SelectedSpace space)
+                                    ]
+                                    [ div [ Attr.class "flex font-normal" ]
+                                        [ span
+                                            [ Attr.classList
+                                                [ ( "font-semibold"
+                                                  , case model.selectedSpace of
+                                                        Just selected ->
+                                                            selected.id == space.id
+
+                                                        Nothing ->
+                                                            False
+                                                  )
+                                                , ( "truncate", True )
+                                                ]
+                                            ]
+                                            [ text <| Maybe.withDefault "[Unnamed]" space.name ]
+                                        , span [ Attr.class "text-gray-500 ml-2 truncate" ] [ text spaceId ]
+                                        ]
+                                    , case model.selectedSpace of
+                                        Just selected ->
+                                            Html.Extra.viewIf (selected.id == space.id) <|
+                                                span [ Attr.class "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-indigo-600" ]
+                                                    [ Icon.defaults
+                                                        |> Icon.withSize 20
+                                                        |> Icon.checkmark
+                                                    ]
+
+                                        Nothing ->
+                                            Html.Extra.nothing
+                                    ]
+                            )
+                            spaces
+                        )
+                    ]
+                ]
+
+        Failure _ ->
+            div [ Attr.class "" ] [ text "Failure :(" ]
 
 
 viewEventsTable : Model -> Html Msg
@@ -595,13 +846,17 @@ view model =
     -- in
     { title = "Hello"
     , body =
-        [ div [ Attr.class "" ]
+        [ div [ Attr.class "w-4/5 m-auto mt-20" ]
             -- [ section [ Attr.class "", mkTestAttribute "section-events" ]
             --     [ viewMeta env space
             --     , viewEventsTable model
             --     ]
             -- ]
-            [ section [ Attr.class "", mkTestAttribute "section-auth" ] [ viewAuth model ]
+            [ section [ mkTestAttribute "section-preflight", Attr.class "" ]
+                [ viewAuthForm model
+                , viewSelectEnvironment model
+                , viewSelectSpace model
+                ]
             ]
         ]
     }

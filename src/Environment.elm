@@ -10,7 +10,7 @@ import Api
 import Api.Endpoint as Endpoint
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
-import RemoteData as RD exposing (WebData)
+import RemoteData exposing (WebData)
 
 
 type EnvironmentId

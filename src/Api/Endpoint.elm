@@ -12,17 +12,8 @@ module Api.Endpoint exposing
     )
 
 import Http exposing (Body, Expect, Header)
-import Json.Decode as Decode
-    exposing
-        ( Decoder
-        , at
-        , int
-        , list
-        , maybe
-        , string
-        , succeed
-        )
-import Json.Decode.Pipeline exposing (optional, required, requiredAt)
+import Json.Decode as Decode exposing (Decoder, succeed)
+import Json.Decode.Pipeline exposing (required)
 import Url.Builder exposing (QueryParameter)
 
 
@@ -119,9 +110,9 @@ authDecoder =
         decoder : Decoder AccessToken
         decoder =
             succeed AccessToken
-                |> required "accessToken" string
+                |> required "accessToken" Decode.string
     in
-    at [ "data" ] decoder
+    Decode.at [ "data" ] decoder
 
 
 subscriptionCredsDecoder : Decoder SubscriptionCreds
@@ -130,8 +121,8 @@ subscriptionCredsDecoder =
         decoder : Decoder SubscriptionCreds
         decoder =
             succeed SubscriptionCreds
-                |> required "accountId" string
-                |> required "subscribeKey" string
-                |> required "token" string
+                |> required "accountId" Decode.string
+                |> required "subscribeKey" Decode.string
+                |> required "token" Decode.string
     in
-    at [ "data" ] decoder
+    Decode.at [ "data" ] decoder

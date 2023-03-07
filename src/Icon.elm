@@ -3,12 +3,16 @@ module Icon exposing
     , arrowRight
     , calendar
     , chainlink
+    , checkmark
     , defaults
     , domainFile
     , domainJob
     , domainSpace
     , domainWorkbook
+    , eyeClose
+    , eyeOpen
     , resetCircle
+    , selectArrows
     , user
     , withColor
     , withHeight
@@ -278,4 +282,70 @@ resetCircle args =
                 [ Attr.d "m4.5 5.5v-4h-4" ]
                 []
             ]
+        ]
+
+
+selectArrows : Args -> Html msg
+selectArrows args =
+    svg
+        [ Attr.height <| String.fromInt args.height
+        , Attr.width <| String.fromInt args.width
+        , Attr.version "1.1"
+        , Attr.viewBox "0 0 20 20"
+        , Attr.fill args.color
+        ]
+        [ path
+            [ Attr.d "M10 3a.75.75 0 01.55.24l3.25 3.5a.75.75 0 11-1.1 1.02L10 4.852 7.3 7.76a.75.75 0 01-1.1-1.02l3.25-3.5A.75.75 0 0110 3zm-3.76 9.2a.75.75 0 011.06.04l2.7 2.908 2.7-2.908a.75.75 0 111.1 1.02l-3.25 3.5a.75.75 0 01-1.1 0l-3.25-3.5a.75.75 0 01.04-1.06z"
+            , Attr.fillRule "evenodd"
+            , Attr.clipRule "evenodd"
+            ]
+            []
+        ]
+
+
+checkmark : Args -> Html msg
+checkmark args =
+    svg
+        [ Attr.height <| String.fromInt args.height
+        , Attr.width <| String.fromInt args.width
+        , Attr.version "1.1"
+        , Attr.viewBox "0 0 20 20"
+        , Attr.fill args.color
+        ]
+        [ path
+            [ Attr.d "M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
+            , Attr.fillRule "evenodd"
+            , Attr.clipRule "evenodd"
+            ]
+            []
+        ]
+
+
+eyeOpen : Args -> Html msg
+eyeOpen args =
+    svg
+        [ Attr.height <| String.fromInt args.height
+        , Attr.width <| String.fromInt args.width
+        , Attr.version "1.1"
+        , Attr.viewBox "0 0 512 512"
+        , Attr.fill args.color
+        ]
+        [ path
+            [ Attr.d "M256 192a64 64 0 1 0 0 128 64 64 0 0 0 0-128zm250 49l-89-89c-89-89-233-89-322 0L6 241c-8 8-8 22 0 30l89 89a227 227 0 0 0 322 0l89-89c8-8 8-22 0-30zM256 363a107 107 0 1 1 0-214 107 107 0 0 1 0 214z" ]
+            []
+        ]
+
+
+eyeClose : Args -> Html msg
+eyeClose args =
+    svg
+        [ Attr.height <| String.fromInt args.height
+        , Attr.width <| String.fromInt args.width
+        , Attr.version "1.1"
+        , Attr.viewBox "0 0 512 512"
+        , Attr.fill args.color
+        ]
+        [ path
+            [ Attr.d "M506 241l-89-89-14-13-258 258a227 227 0 0 0 272-37l89-89c8-8 8-22 0-30zM256 363a21 21 0 0 1 0-43c35 0 64-29 64-64a21 21 0 0 1 43 0c0 59-48 107-107 107zM95 152L6 241c-8 8-8 22 0 30l89 89 14 13 258-258c-86-49-198-37-272 37zm161 40c-35 0-64 29-64 64a21 21 0 0 1-43 0c0-59 48-107 107-107a21 21 0 0 1 0 43z" ]
+            []
         ]
