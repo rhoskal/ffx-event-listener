@@ -1,7 +1,7 @@
 module Main exposing (..)
 
-import Api
-import Api.Endpoint as Endpoint exposing (AccessToken, SubscriptionCreds)
+import Api exposing (Cred)
+import Api.Endpoint as Endpoint exposing (SubscriptionCreds)
 import Browser
 import Environment exposing (Environment)
 import Html exposing (..)
@@ -14,8 +14,7 @@ import Icon
 import InteropDefinitions
 import InteropPorts
 import Json.Decode as Decode
-import Json.Encode as Encode
-import RemoteData exposing (RemoteData(..), WebData)
+import RemoteData as RD exposing (RemoteData(..), WebData)
 import Space exposing (Space)
 
 
@@ -26,7 +25,7 @@ import Space exposing (Space)
 type alias Model =
     { clientId : String
     , secretKey : String
-    , accessToken : WebData AccessToken
+    , accessToken : WebData Cred
     , showSecret : Bool
     , showEnvironmentChoices : Bool
     , selectedEnvironment : Maybe Environment
@@ -86,7 +85,7 @@ type Msg
     | ToggleSpaceChoices
       -- Http
     | SendAuthRequest
-    | GotAuthResponse (WebData AccessToken)
+    | GotAuthResponse (WebData Cred)
     | GotEnvironmentsResponse (WebData (List Environment))
     | GotSpacesResponse (WebData (List Space))
     | GotSubscriptionCredsResponse (WebData SubscriptionCreds)
@@ -128,7 +127,7 @@ update msg model =
 
         SelectedEnvironment env ->
             ( { model | selectedEnvironment = Just env, showEnvironmentChoices = False }
-            , Space.list env.id GotSpacesResponse
+            , Space.list env.id (RD.toMaybe model.accessToken) GotSpacesResponse
             )
 
         ToggleEnvironmentChoices ->
@@ -136,7 +135,8 @@ update msg model =
 
         SelectedSpace space ->
             ( { model | selectedSpace = Just space }
-            , Api.get (Endpoint.getSubscriptionCreds <| Space.unwrap space.id) GotSubscriptionCredsResponse Endpoint.subscriptionCredsDecoder
+              -- , Api.get (Endpoint.getSubscriptionCreds <| Space.unwrap space.id) GotSubscriptionCredsResponse Endpoint.subscriptionCredsDecoder
+            , Cmd.none
             )
 
         ToggleSpaceChoices ->
@@ -146,7 +146,7 @@ update msg model =
             case response of
                 Success _ ->
                     ( { model | accessToken = response }
-                    , Environment.list GotEnvironmentsResponse
+                    , Environment.list (RD.toMaybe response) GotEnvironmentsResponse
                     )
 
                 Failure _ ->
@@ -162,15 +162,8 @@ update msg model =
 
                 secretKey =
                     model.secretKey
-
-                jsonBody =
-                    Encode.object
-                        [ ( "clientId", Encode.string clientId )
-                        , ( "secret", Encode.string secretKey )
-                        ]
-                        |> Http.jsonBody
             in
-            ( model, Api.post Endpoint.auth jsonBody GotAuthResponse Endpoint.authDecoder )
+            ( model, Api.login clientId secretKey GotAuthResponse )
 
         GotEnvironmentsResponse response ->
             ( { model | environments = response }, Cmd.none )
@@ -374,7 +367,7 @@ viewSelectEnvironment model =
                     [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
                     , Attr.id "listbox-environments-label"
                     ]
-                    [ text "Environments" ]
+                    [ text "Environment" ]
                 , div [ Attr.class "relative mt-2" ]
                     [ button
                         [ Attr.class "relative w-full hover:cursor-pointer rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6"
@@ -480,7 +473,7 @@ viewSelectSpace model =
                     [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
                     , Attr.id "listbox-spaces-label"
                     ]
-                    [ text "Spaces" ]
+                    [ text "Space" ]
                 , div [ Attr.class "relative mt-2" ]
                     [ button
                         [ Attr.class "relative w-full hover:cursor-pointer rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6"

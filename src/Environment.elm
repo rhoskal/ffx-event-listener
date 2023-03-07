@@ -6,7 +6,7 @@ module Environment exposing
     , unwrap
     )
 
-import Api
+import Api exposing (Cred)
 import Api.Endpoint as Endpoint
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
@@ -30,12 +30,12 @@ unwrap (EnvironmentId id) =
 
 
 
--- FETCH
+-- HTTP
 
 
-list : (WebData (List Environment) -> msg) -> Cmd msg
-list toMsg =
-    Api.get Endpoint.listEnvironments toMsg environmentsDecoder
+list : Maybe Cred -> (WebData (List Environment) -> msg) -> Cmd msg
+list maybeCred toMsg =
+    Api.get Endpoint.listEnvironments maybeCred toMsg environmentsDecoder
 
 
 

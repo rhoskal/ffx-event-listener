@@ -5,7 +5,7 @@ module Space exposing
     , unwrap
     )
 
-import Api
+import Api exposing (Cred)
 import Api.Endpoint as Endpoint
 import Environment exposing (EnvironmentId, environmentIdDecoder)
 import Iso8601
@@ -36,17 +36,17 @@ unwrap (SpaceId id) =
 
 
 
--- FETCH
+-- HTTP
 
 
-list : EnvironmentId -> (WebData (List Space) -> msg) -> Cmd msg
-list environmentId toMsg =
+list : EnvironmentId -> Maybe Cred -> (WebData (List Space) -> msg) -> Cmd msg
+list environmentId maybeCred toMsg =
     let
         envId : String
         envId =
             Environment.unwrap environmentId
     in
-    Api.get (Endpoint.listSpaces envId) toMsg spacesDecoder
+    Api.get (Endpoint.listSpaces envId) maybeCred toMsg spacesDecoder
 
 
 
