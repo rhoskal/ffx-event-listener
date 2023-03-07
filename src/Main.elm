@@ -204,12 +204,12 @@ viewAuthForm : Model -> Html Msg
 viewAuthForm model =
     case model.accessToken of
         NotAsked ->
-            div [ Attr.class "" ]
+            div [ Attr.class "w-full" ]
                 [ form
                     [ Attr.class ""
                     , Events.onSubmit SendAuthRequest
                     ]
-                    [ div [ Attr.class "grid grid-cols-2 gap-y-6 gap-x-8 sm:grid-cols-1" ]
+                    [ div [ Attr.class "grid grid-cols-2 gap-y-6 gap-x-8" ]
                         [ div [ Attr.class "" ]
                             [ label
                                 [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
@@ -272,7 +272,7 @@ viewAuthForm model =
                             ]
                         , button
                             [ mkTestAttribute "btn-auth-submit"
-                            , Attr.class "inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm bg-indigo-600 text-white"
+                            , Attr.class "col-span-full inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm bg-indigo-600 text-white"
                             , Attr.type_ "submit"
                             ]
                             [ text "Authenticate" ]
@@ -852,10 +852,16 @@ view model =
             --     , viewEventsTable model
             --     ]
             -- ]
-            [ section [ mkTestAttribute "section-preflight", Attr.class "" ]
+            [ section
+                [ mkTestAttribute "section-preflight"
+                , Attr.class "flex items-center justify-between"
+                ]
                 [ viewAuthForm model
-                , viewSelectEnvironment model
-                , viewSelectSpace model
+                , div [ Attr.class "border-r-2 border-gray-300 w-1 h-12 mx-8" ] []
+                , div [ Attr.class "flex justify-between w-full" ]
+                    [ viewSelectEnvironment model
+                    , viewSelectSpace model
+                    ]
                 ]
             ]
         ]
