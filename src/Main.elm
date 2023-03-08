@@ -619,233 +619,246 @@ viewEventsTable model =
             span [ Attr.class "inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-800" ]
                 [ text eventTopic ]
     in
-    div [ Attr.class "" ]
-        [ div [ Attr.class "flex items-center" ]
-            [ div [ Attr.class "flex-auto" ]
-                [ h1 [ Attr.class "text-base font-semibold leading-6 text-gray-900" ]
-                    [ text "Events" ]
-                , p [ Attr.class "mt-2 text-sm text-gray-700" ]
-                    [ text "Flatfile's platform was built using the event-driven architecture... Events are streamed in real-time" ]
+    if List.length model.events == 0 then
+        div [ Attr.class "relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" ]
+            [ div [ Attr.class "text-gray-400 flex items-center justify-center mb-4" ]
+                [ Icon.defaults
+                    |> Icon.withSize 60
+                    |> Icon.waitingRoom
                 ]
-            , div [ Attr.class "mt-4 sm:mt-0 sm:ml-16 sm:flex-none" ]
-                [ button [ Attr.class "block rounded-md bg-indigo-600 py-2 px-3 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" ]
-                    [ text "Export" ]
-                ]
+            , span [ Attr.class "mt-2 block text-sm font-semibold text-gray-900" ]
+                [ text "Patiently waiting for events." ]
             ]
-        , div [ Attr.class "mt-8 flow-root" ]
-            [ div [ Attr.class "-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8" ]
-                [ div [ Attr.class "inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8" ]
-                    [ table [ Attr.class "min-w-full divide-y divide-gray-300" ]
-                        [ thead [ Attr.class "" ]
-                            [ tr [ Attr.class "" ]
-                                [ th
-                                    [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
-                                    , Attr.scope "col"
-                                    ]
-                                    [ text "Domain" ]
-                                , th
-                                    [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
-                                    , Attr.scope "col"
-                                    ]
-                                    [ text "Timestamp" ]
-                                , th
-                                    [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
-                                    , Attr.scope "col"
-                                    ]
-                                    [ text "Summary" ]
-                                ]
-                            ]
-                        , tbody [ Attr.class "divide-y divide-gray-200 bg-white" ]
-                            [ tr
-                                [ Attr.class "cursor-pointer"
-                                , Events.onClick (ClickedEvent "us_evt_1")
-                                ]
-                                [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ arrowIcon "us_evt_1"
-                                    , domainIcon "workbook"
-                                    ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ text "2019-12-17 10:10:37.951 MST" ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ badge "records:created"
-                                    , span [ Attr.class "ml-2" ]
-                                        [ text "42 records" ]
+
+    else
+        div [ Attr.class "" ]
+            [ div [ Attr.class "flex items-center" ]
+                [ div [ Attr.class "flex-auto" ]
+                    [ h1 [ Attr.class "text-base font-semibold leading-6 text-gray-900" ]
+                        [ text "Events" ]
+                    , p [ Attr.class "mt-2 text-sm text-gray-700" ]
+                        [ text "Flatfile's platform was built using the event-driven architecture... Events are streamed in real-time" ]
+                    ]
+                , div [ Attr.class "mt-4 sm:mt-0 sm:ml-16 sm:flex-none" ]
+                    [ button [ Attr.class "block rounded-md bg-indigo-600 py-2 px-3 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" ]
+                        [ text "Export" ]
+                    ]
+                ]
+            , div [ Attr.class "mt-8 flow-root" ]
+                [ div [ Attr.class "-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8" ]
+                    [ div [ Attr.class "inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8" ]
+                        [ table [ Attr.class "min-w-full divide-y divide-gray-300" ]
+                            [ thead [ Attr.class "" ]
+                                [ tr [ Attr.class "" ]
+                                    [ th
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
+                                        , Attr.scope "col"
+                                        ]
+                                        [ text "Domain" ]
+                                    , th
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
+                                        , Attr.scope "col"
+                                        ]
+                                        [ text "Timestamp" ]
+                                    , th
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
+                                        , Attr.scope "col"
+                                        ]
+                                        [ text "Summary" ]
                                     ]
                                 ]
-                            , tr
-                                [ Attr.class "cursor-pointer"
-                                , Events.onClick (ClickedEvent "us_evt_1")
-                                ]
-                                [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ arrowIcon "us_evt_1"
-                                    , domainIcon "workbook"
+                            , tbody [ Attr.class "divide-y divide-gray-200 bg-white" ]
+                                [ tr
+                                    [ Attr.class "cursor-pointer"
+                                    , Events.onClick (ClickedEvent "us_evt_1")
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ text "2019-12-17 10:10:37.951 MST" ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ badge "records:updated"
-                                    , span [ Attr.class "ml-2" ]
-                                        [ text "Some helpful summary text" ]
+                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ arrowIcon "us_evt_1"
+                                        , domainIcon "workbook"
+                                        ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ text "2019-12-17 10:10:37.951 MST" ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ badge "records:created"
+                                        , span [ Attr.class "ml-2" ]
+                                            [ text "42 records" ]
+                                        ]
                                     ]
-                                ]
-                            , tr
-                                [ Attr.class "cursor-pointer"
-                                , Events.onClick (ClickedEvent "us_evt_1")
-                                ]
-                                [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ arrowIcon "us_evt_1"
-                                    , domainIcon "workbook"
+                                , tr
+                                    [ Attr.class "cursor-pointer"
+                                    , Events.onClick (ClickedEvent "us_evt_1")
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ text "2019-12-17 10:10:37.951 MST" ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ badge "records:deleted"
-                                    , span [ Attr.class "ml-2" ]
-                                        [ text "1 record" ]
+                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ arrowIcon "us_evt_1"
+                                        , domainIcon "workbook"
+                                        ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ text "2019-12-17 10:10:37.951 MST" ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ badge "records:updated"
+                                        , span [ Attr.class "ml-2" ]
+                                            [ text "Some helpful summary text" ]
+                                        ]
                                     ]
-                                ]
-                            , tr
-                                [ Attr.class "cursor-pointer"
-                                , Events.onClick (ClickedEvent "us_evt_1")
-                                ]
-                                [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ arrowIcon "us_evt_1"
-                                    , domainIcon "workbook"
+                                , tr
+                                    [ Attr.class "cursor-pointer"
+                                    , Events.onClick (ClickedEvent "us_evt_1")
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ text "2019-12-17 10:10:37.951 MST" ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ badge "sheet:validated"
-                                    , span [ Attr.class "ml-2" ]
-                                        [ text "Some helpful summary text" ]
+                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ arrowIcon "us_evt_1"
+                                        , domainIcon "workbook"
+                                        ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ text "2019-12-17 10:10:37.951 MST" ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ badge "records:deleted"
+                                        , span [ Attr.class "ml-2" ]
+                                            [ text "1 record" ]
+                                        ]
                                     ]
-                                ]
-                            , tr
-                                [ Attr.class "cursor-pointer"
-                                , Events.onClick (ClickedEvent "us_evt_2")
-                                ]
-                                [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ arrowIcon "us_evt_2"
-                                    , domainIcon "file"
+                                , tr
+                                    [ Attr.class "cursor-pointer"
+                                    , Events.onClick (ClickedEvent "us_evt_1")
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ text "2019-12-17 10:10:37.951 MST" ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ badge "upload:started"
-                                    , span [ Attr.class "ml-2" ]
-                                        [ text "Some helpful summary text" ]
+                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ arrowIcon "us_evt_1"
+                                        , domainIcon "workbook"
+                                        ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ text "2019-12-17 10:10:37.951 MST" ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ badge "sheet:validated"
+                                        , span [ Attr.class "ml-2" ]
+                                            [ text "Some helpful summary text" ]
+                                        ]
                                     ]
-                                ]
-                            , tr
-                                [ Attr.class "cursor-pointer"
-                                , Events.onClick (ClickedEvent "us_evt_2")
-                                ]
-                                [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ arrowIcon "us_evt_2"
-                                    , domainIcon "file"
+                                , tr
+                                    [ Attr.class "cursor-pointer"
+                                    , Events.onClick (ClickedEvent "us_evt_2")
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ text "2019-12-17 10:10:37.951 MST" ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ badge "upload:completed"
-                                    , span [ Attr.class "ml-2" ]
-                                        [ text "Some helpful summary text" ]
+                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ arrowIcon "us_evt_2"
+                                        , domainIcon "file"
+                                        ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ text "2019-12-17 10:10:37.951 MST" ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ badge "upload:started"
+                                        , span [ Attr.class "ml-2" ]
+                                            [ text "Some helpful summary text" ]
+                                        ]
                                     ]
-                                ]
-                            , tr
-                                [ Attr.class "cursor-pointer"
-                                , Events.onClick (ClickedEvent "us_evt_3")
-                                ]
-                                [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ arrowIcon "us_evt_3"
-                                    , domainIcon "job"
+                                , tr
+                                    [ Attr.class "cursor-pointer"
+                                    , Events.onClick (ClickedEvent "us_evt_2")
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ text "2019-12-17 10:10:37.951 MST" ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ badge "job:waiting"
-                                    , span [ Attr.class "ml-2" ]
-                                        [ text "Some helpful summary text" ]
+                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ arrowIcon "us_evt_2"
+                                        , domainIcon "file"
+                                        ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ text "2019-12-17 10:10:37.951 MST" ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ badge "upload:completed"
+                                        , span [ Attr.class "ml-2" ]
+                                            [ text "Some helpful summary text" ]
+                                        ]
                                     ]
-                                ]
-                            , tr
-                                [ Attr.class "cursor-pointer"
-                                , Events.onClick (ClickedEvent "us_evt_3")
-                                ]
-                                [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ arrowIcon "us_evt_3"
-                                    , domainIcon "job"
+                                , tr
+                                    [ Attr.class "cursor-pointer"
+                                    , Events.onClick (ClickedEvent "us_evt_3")
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ text "2019-12-17 10:10:37.951 MST" ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ badge "job:started"
-                                    , span [ Attr.class "ml-2" ]
-                                        [ text "File extraction" ]
+                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ arrowIcon "us_evt_3"
+                                        , domainIcon "job"
+                                        ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ text "2019-12-17 10:10:37.951 MST" ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ badge "job:waiting"
+                                        , span [ Attr.class "ml-2" ]
+                                            [ text "Some helpful summary text" ]
+                                        ]
                                     ]
-                                ]
-                            , tr
-                                [ Attr.class "cursor-pointer"
-                                , Events.onClick (ClickedEvent "us_evt_3")
-                                ]
-                                [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ arrowIcon "us_evt_3"
-                                    , domainIcon "job"
+                                , tr
+                                    [ Attr.class "cursor-pointer"
+                                    , Events.onClick (ClickedEvent "us_evt_3")
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ text "2019-12-17 10:10:37.951 MST" ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ badge "job:updated"
-                                    , span [ Attr.class "ml-2" ]
-                                        [ text "File extraction" ]
+                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ arrowIcon "us_evt_3"
+                                        , domainIcon "job"
+                                        ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ text "2019-12-17 10:10:37.951 MST" ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ badge "job:started"
+                                        , span [ Attr.class "ml-2" ]
+                                            [ text "File extraction" ]
+                                        ]
                                     ]
-                                ]
-                            , tr
-                                [ Attr.class "cursor-pointer"
-                                , Events.onClick (ClickedEvent "us_evt_3")
-                                ]
-                                [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ arrowIcon "us_evt_3"
-                                    , domainIcon "job"
+                                , tr
+                                    [ Attr.class "cursor-pointer"
+                                    , Events.onClick (ClickedEvent "us_evt_3")
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ text "2019-12-17 10:10:37.951 MST" ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ badge "job:failed"
-                                    , span [ Attr.class "ml-2" ]
-                                        [ text "File extraction" ]
+                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ arrowIcon "us_evt_3"
+                                        , domainIcon "job"
+                                        ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ text "2019-12-17 10:10:37.951 MST" ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ badge "job:updated"
+                                        , span [ Attr.class "ml-2" ]
+                                            [ text "File extraction" ]
+                                        ]
                                     ]
-                                ]
-                            , tr
-                                [ Attr.class "cursor-pointer"
-                                , Events.onClick (ClickedEvent "us_evt_3")
-                                ]
-                                [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ arrowIcon "us_evt_3"
-                                    , domainIcon "job"
+                                , tr
+                                    [ Attr.class "cursor-pointer"
+                                    , Events.onClick (ClickedEvent "us_evt_3")
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ text "2019-12-17 10:10:37.951 MST" ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ badge "job:completed"
-                                    , span [ Attr.class "ml-2" ]
-                                        [ text "Some helpful summary text" ]
+                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ arrowIcon "us_evt_3"
+                                        , domainIcon "job"
+                                        ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ text "2019-12-17 10:10:37.951 MST" ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ badge "job:failed"
+                                        , span [ Attr.class "ml-2" ]
+                                            [ text "File extraction" ]
+                                        ]
                                     ]
-                                ]
-                            , tr
-                                [ Attr.class "cursor-pointer"
-                                , Events.onClick (ClickedEvent "us_evt_4")
-                                ]
-                                [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ arrowIcon "us_evt_4"
-                                    , domainIcon "space"
+                                , tr
+                                    [ Attr.class "cursor-pointer"
+                                    , Events.onClick (ClickedEvent "us_evt_3")
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ text "2019-12-17 10:10:37.951 MST" ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                    [ badge "space:created"
-                                    , span [ Attr.class "ml-2" ]
-                                        [ text "Some helpful summary text" ]
+                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ arrowIcon "us_evt_3"
+                                        , domainIcon "job"
+                                        ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ text "2019-12-17 10:10:37.951 MST" ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ badge "job:completed"
+                                        , span [ Attr.class "ml-2" ]
+                                            [ text "Some helpful summary text" ]
+                                        ]
+                                    ]
+                                , tr
+                                    [ Attr.class "cursor-pointer"
+                                    , Events.onClick (ClickedEvent "us_evt_4")
+                                    ]
+                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ arrowIcon "us_evt_4"
+                                        , domainIcon "space"
+                                        ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ text "2019-12-17 10:10:37.951 MST" ]
+                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                        [ badge "space:created"
+                                        , span [ Attr.class "ml-2" ]
+                                            [ text "Some helpful summary text" ]
+                                        ]
                                     ]
                                 ]
                             ]
@@ -853,7 +866,6 @@ viewEventsTable model =
                     ]
                 ]
             ]
-        ]
 
 
 view : Model -> Browser.Document Msg
