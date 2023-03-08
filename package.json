@@ -18,7 +18,9 @@
     "prepare": "is-ci || husky install",
     "preview": "make preview",
     "start": "make run",
-    "test": "make test"
+    "test": "make test",
+    "test:elm": "make test-elm",
+    "test:ts": "make test-ts"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.2",
