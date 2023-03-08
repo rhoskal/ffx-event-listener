@@ -8,7 +8,7 @@
 
 ---
 
-Flatfile debugging prototype.
+Flatfile debugging prototype. [View app](https://venerable-fenglisu-8c0f2c.netlify.app)
 
 ## Setup (w/ Nix)
 
