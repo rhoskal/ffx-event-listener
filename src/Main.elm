@@ -1,7 +1,6 @@
 module Main exposing (..)
 
 import Api exposing (Cred)
-import Api.Endpoint as Endpoint exposing (SubscriptionCreds)
 import Browser
 import Environment exposing (Environment)
 import Html exposing (..)
@@ -9,13 +8,14 @@ import Html.Attributes as Attr
 import Html.Attributes.Extra as AttrExtra
 import Html.Events as Events
 import Html.Extra
-import Http
 import Icon
 import InteropDefinitions
 import InteropPorts
 import Json.Decode as Decode
+import PubNub exposing (SubscriptionCreds)
 import RemoteData as RD exposing (RemoteData(..), WebData)
 import Space exposing (Space)
+import Utils exposing (mkTestAttribute)
 
 
 
@@ -141,8 +141,7 @@ update msg model =
                 | selectedSpace = Just space
                 , showSpaceChoices = False
               }
-              -- , Api.get (Endpoint.getSubscriptionCreds <| Space.unwrap space.id) GotSubscriptionCredsResponse Endpoint.subscriptionCredsDecoder
-            , Cmd.none
+            , PubNub.auth space.id (RD.toMaybe model.accessToken) GotSubscriptionCredsResponse
             )
 
         ToggleSpaceChoices ->
@@ -192,11 +191,6 @@ subscriptions _ =
 
 
 -- VIEW
-
-
-mkTestAttribute : String -> Attribute msg
-mkTestAttribute key =
-    Attr.attribute "data-testid" (String.toLower key)
 
 
 viewAuthForm : Model -> Html Msg

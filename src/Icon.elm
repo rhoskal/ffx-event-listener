@@ -58,14 +58,14 @@ withHeight h args =
     { args | height = h }
 
 
-withSize : Int -> Args -> Args
-withSize s args =
-    { args | height = s, width = s }
-
-
 withWidth : Int -> Args -> Args
 withWidth w args =
     { args | width = w }
+
+
+withSize : Int -> Args -> Args
+withSize s args =
+    { args | height = s, width = s }
 
 
 

@@ -1,35 +1,18 @@
 module Api.Endpoint exposing
-    ( AccessToken
-    , Endpoint
-    , SubscriptionCreds
+    ( Endpoint
     , auth
-    , authDecoder
-    , getSubscriptionCreds
     , listEnvironments
     , listSpaces
+    , pubNubAuth
     , request
-    , subscriptionCredsDecoder
     )
 
 import Http exposing (Body, Expect, Header)
-import Json.Decode as Decode exposing (Decoder, succeed)
-import Json.Decode.Pipeline exposing (required)
 import Url.Builder exposing (QueryParameter)
 
 
 type Endpoint
     = Endpoint String
-
-
-type AccessToken
-    = AccessToken String
-
-
-type alias SubscriptionCreds =
-    { accountId : String
-    , subscribeKey : String
-    , token : String
-    }
 
 
 {-| Http.request, except it takes an Endpoint instead of a Url.
@@ -95,34 +78,6 @@ listSpaces environmentId =
         ]
 
 
-getSubscriptionCreds : String -> Endpoint
-getSubscriptionCreds spaceId =
+pubNubAuth : String -> Endpoint
+pubNubAuth spaceId =
     url [ "spaces", spaceId, "subscription" ] []
-
-
-
--- DECODERS
-
-
-authDecoder : Decoder AccessToken
-authDecoder =
-    let
-        decoder : Decoder AccessToken
-        decoder =
-            succeed AccessToken
-                |> required "accessToken" Decode.string
-    in
-    Decode.at [ "data" ] decoder
-
-
-subscriptionCredsDecoder : Decoder SubscriptionCreds
-subscriptionCredsDecoder =
-    let
-        decoder : Decoder SubscriptionCreds
-        decoder =
-            succeed SubscriptionCreds
-                |> required "accountId" Decode.string
-                |> required "subscribeKey" Decode.string
-                |> required "token" Decode.string
-    in
-    Decode.at [ "data" ] decoder

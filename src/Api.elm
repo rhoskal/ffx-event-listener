@@ -1,4 +1,4 @@
-module Api exposing (Cred, get, login, post)
+module Api exposing (Cred, get, login)
 
 {-| This module exposes wrappers around Http methods
 -}
@@ -36,8 +36,8 @@ token (Cred val) =
 
 
 credHeader : Cred -> Header
-credHeader (Cred str) =
-    Http.header "authorization" ("Bearer " ++ str)
+credHeader cred =
+    Http.header "authorization" ("Bearer " ++ token cred)
 
 
 {-| Do not expose this!
