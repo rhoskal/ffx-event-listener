@@ -12,7 +12,7 @@ Flatfile debugging prototype. [View app](https://venerable-fenglisu-8c0f2c.netli
 
 ## Setup (w/ Nix)
 
-1. `direnv allow`
+1. Configure env vars using `direnv allow`
 
 ## Setup (w/o Nix)
 
@@ -20,5 +20,5 @@ Flatfile debugging prototype. [View app](https://venerable-fenglisu-8c0f2c.netli
 
 ## Dev
 
-1. `make deps`
-2. `make run`
+1. Install using using `make deps`
+2. Run dev server using `make run`
