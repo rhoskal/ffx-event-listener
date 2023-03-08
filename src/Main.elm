@@ -295,24 +295,28 @@ viewMeta selectedEnvironment selectedSpace =
         createdBy =
             Maybe.withDefault "@username" selectedSpace.createdByUserName
     in
-    div [ Attr.class "flex items-center justify-between py-5 px-4" ]
+    div [ Attr.class "flex items-center justify-between pt-10 pb-6" ]
         [ div [ Attr.class "flex-col" ]
-            [ h2 [ Attr.class "text-2xl font-bold leading-7 text-gray-900" ] [ text spaceName ]
+            [ h2 [ Attr.class "text-2xl font-bold leading-7 text-gray-900" ]
+                [ text spaceName ]
             , div [ Attr.class "flex mt-1 space-x-6" ]
                 [ div [ Attr.class "inline-flex items-center text-sm text-gray-300" ]
-                    [ span [] [ text environmentName ]
+                    [ span []
+                        [ text environmentName ]
                     ]
                 , div [ Attr.class "inline-flex items-center text-sm text-gray-300" ]
                     [ Icon.defaults
                         |> Icon.withSize 20
                         |> Icon.calendar
-                    , span [ Attr.class "ml-1.5" ] [ text createdAt ]
+                    , span [ Attr.class "ml-1.5" ]
+                        [ text createdAt ]
                     ]
                 , div [ Attr.class "inline-flex items-center text-sm text-gray-300" ]
                     [ Icon.defaults
                         |> Icon.withSize 20
                         |> Icon.user
-                    , span [ Attr.class "ml-1.5" ] [ text createdBy ]
+                    , span [ Attr.class "ml-1.5" ]
+                        [ text createdBy ]
                     ]
                 ]
             ]
@@ -326,7 +330,8 @@ viewMeta selectedEnvironment selectedSpace =
                     [ Icon.defaults
                         |> Icon.withSize 20
                         |> Icon.chainlink
-                    , span [ Attr.class "ml-1.5" ] [ text "View" ]
+                    , span [ Attr.class "ml-1.5" ]
+                        [ text "View" ]
                     ]
                 ]
             , div [ Attr.class "" ]
@@ -338,7 +343,8 @@ viewMeta selectedEnvironment selectedSpace =
                     [ Icon.defaults
                         |> Icon.withSize 20
                         |> Icon.resetCircle
-                    , span [ Attr.class "ml-1.5" ] [ text "Reset" ]
+                    , span [ Attr.class "ml-1.5" ]
+                        [ text "Reset" ]
                     ]
                 ]
             ]
@@ -349,10 +355,12 @@ viewSelectEnvironment : Model -> Html Msg
 viewSelectEnvironment model =
     case model.environments of
         NotAsked ->
-            div [ Attr.class "w-full" ] [ text "Not Asked" ]
+            div [ Attr.class "w-full" ]
+                [ text "Not Asked" ]
 
         Loading ->
-            div [ Attr.class "w-full" ] [ text "Loading..." ]
+            div [ Attr.class "w-full" ]
+                [ text "Loading..." ]
 
         Success environments ->
             div [ Attr.class "w-full" ]
@@ -427,7 +435,8 @@ viewSelectEnvironment model =
                                                 ]
                                             ]
                                             [ text env.name ]
-                                        , span [ Attr.class "text-gray-500 ml-2 truncate" ] [ text envId ]
+                                        , span [ Attr.class "text-gray-500 ml-2 truncate" ]
+                                            [ text envId ]
                                         ]
                                     , case model.selectedEnvironment of
                                         Just selected ->
@@ -448,17 +457,20 @@ viewSelectEnvironment model =
                 ]
 
         Failure _ ->
-            div [ Attr.class "w-full" ] [ text "Failure :(" ]
+            div [ Attr.class "w-full" ]
+                [ text "Failure :(" ]
 
 
 viewSelectSpace : Model -> Html Msg
 viewSelectSpace model =
     case model.spaces of
         NotAsked ->
-            div [ Attr.class "w-full" ] [ text "Not Asked" ]
+            div [ Attr.class "w-full" ]
+                [ text "Not Asked" ]
 
         Loading ->
-            div [ Attr.class "w-full" ] [ text "Loading..." ]
+            div [ Attr.class "w-full" ]
+                [ text "Loading..." ]
 
         Success spaces ->
             div [ Attr.class "w-full" ]
@@ -471,7 +483,8 @@ viewSelectSpace model =
                     [ button
                         [ Attr.class "relative w-full hover:cursor-pointer rounded-md bg-white py-1.5 pl-3 pr-10 text-left text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 sm:text-sm sm:leading-6"
                         , Attr.attribute "aria-haspopup" "listbox"
-                        , AttrExtra.attributeIf model.showSpaceChoices <| Attr.attribute "aria-expanded" "true"
+                        , AttrExtra.attributeIf model.showSpaceChoices <|
+                            Attr.attribute "aria-expanded" "true"
                         , Attr.attribute "aria-labelledby" "listbox-spaces-label"
                         , Events.onClick ToggleSpaceChoices
                         ]
@@ -534,7 +547,8 @@ viewSelectSpace model =
                                                 ]
                                             ]
                                             [ text <| Maybe.withDefault "[Unnamed]" space.name ]
-                                        , span [ Attr.class "text-gray-500 ml-2 truncate" ] [ text spaceId ]
+                                        , span [ Attr.class "text-gray-500 ml-2 truncate" ]
+                                            [ text spaceId ]
                                         ]
                                     , case model.selectedSpace of
                                         Just selected ->
@@ -608,16 +622,20 @@ viewEventsTable model =
 
         badge : String -> Html msg
         badge eventTopic =
-            span [ Attr.class "inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-800" ] [ text eventTopic ]
+            span [ Attr.class "inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-800" ]
+                [ text eventTopic ]
     in
-    div [ Attr.class "px-4" ]
+    div [ Attr.class "" ]
         [ div [ Attr.class "flex items-center" ]
             [ div [ Attr.class "flex-auto" ]
-                [ h1 [ Attr.class "text-base font-semibold leading-6 text-gray-900" ] [ text "Events" ]
-                , p [ Attr.class "mt-2 text-sm text-gray-700" ] [ text "Flatfile's platform was built using the event-driven architecture... Events are streamed in real-time" ]
+                [ h1 [ Attr.class "text-base font-semibold leading-6 text-gray-900" ]
+                    [ text "Events" ]
+                , p [ Attr.class "mt-2 text-sm text-gray-700" ]
+                    [ text "Flatfile's platform was built using the event-driven architecture... Events are streamed in real-time" ]
                 ]
             , div [ Attr.class "mt-4 sm:mt-0 sm:ml-16 sm:flex-none" ]
-                [ button [ Attr.class "block rounded-md bg-indigo-600 py-2 px-3 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" ] [ text "Export" ]
+                [ button [ Attr.class "block rounded-md bg-indigo-600 py-2 px-3 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" ]
+                    [ text "Export" ]
                 ]
             ]
         , div [ Attr.class "mt-8 flow-root" ]
@@ -652,10 +670,12 @@ viewEventsTable model =
                                     [ arrowIcon "us_evt_1"
                                     , domainIcon "workbook"
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ] [ text "2019-12-17 10:10:37.951 MST" ]
+                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                    [ text "2019-12-17 10:10:37.951 MST" ]
                                 , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                     [ badge "records:created"
-                                    , span [ Attr.class "ml-2" ] [ text "42 records" ]
+                                    , span [ Attr.class "ml-2" ]
+                                        [ text "42 records" ]
                                     ]
                                 ]
                             , tr
@@ -666,10 +686,12 @@ viewEventsTable model =
                                     [ arrowIcon "us_evt_1"
                                     , domainIcon "workbook"
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ] [ text "2019-12-17 10:10:37.951 MST" ]
+                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                    [ text "2019-12-17 10:10:37.951 MST" ]
                                 , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                     [ badge "records:updated"
-                                    , span [ Attr.class "ml-2" ] [ text "Some helpful summary text" ]
+                                    , span [ Attr.class "ml-2" ]
+                                        [ text "Some helpful summary text" ]
                                     ]
                                 ]
                             , tr
@@ -680,10 +702,12 @@ viewEventsTable model =
                                     [ arrowIcon "us_evt_1"
                                     , domainIcon "workbook"
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ] [ text "2019-12-17 10:10:37.951 MST" ]
+                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                    [ text "2019-12-17 10:10:37.951 MST" ]
                                 , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                     [ badge "records:deleted"
-                                    , span [ Attr.class "ml-2" ] [ text "1 record" ]
+                                    , span [ Attr.class "ml-2" ]
+                                        [ text "1 record" ]
                                     ]
                                 ]
                             , tr
@@ -694,10 +718,12 @@ viewEventsTable model =
                                     [ arrowIcon "us_evt_1"
                                     , domainIcon "workbook"
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ] [ text "2019-12-17 10:10:37.951 MST" ]
+                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                    [ text "2019-12-17 10:10:37.951 MST" ]
                                 , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                     [ badge "sheet:validated"
-                                    , span [ Attr.class "ml-2" ] [ text "Some helpful summary text" ]
+                                    , span [ Attr.class "ml-2" ]
+                                        [ text "Some helpful summary text" ]
                                     ]
                                 ]
                             , tr
@@ -708,10 +734,12 @@ viewEventsTable model =
                                     [ arrowIcon "us_evt_2"
                                     , domainIcon "file"
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ] [ text "2019-12-17 10:10:37.951 MST" ]
+                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                    [ text "2019-12-17 10:10:37.951 MST" ]
                                 , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                     [ badge "upload:started"
-                                    , span [ Attr.class "ml-2" ] [ text "Some helpful summary text" ]
+                                    , span [ Attr.class "ml-2" ]
+                                        [ text "Some helpful summary text" ]
                                     ]
                                 ]
                             , tr
@@ -722,10 +750,12 @@ viewEventsTable model =
                                     [ arrowIcon "us_evt_2"
                                     , domainIcon "file"
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ] [ text "2019-12-17 10:10:37.951 MST" ]
+                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                    [ text "2019-12-17 10:10:37.951 MST" ]
                                 , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                     [ badge "upload:completed"
-                                    , span [ Attr.class "ml-2" ] [ text "Some helpful summary text" ]
+                                    , span [ Attr.class "ml-2" ]
+                                        [ text "Some helpful summary text" ]
                                     ]
                                 ]
                             , tr
@@ -736,10 +766,12 @@ viewEventsTable model =
                                     [ arrowIcon "us_evt_3"
                                     , domainIcon "job"
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ] [ text "2019-12-17 10:10:37.951 MST" ]
+                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                    [ text "2019-12-17 10:10:37.951 MST" ]
                                 , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                     [ badge "job:waiting"
-                                    , span [ Attr.class "ml-2" ] [ text "Some helpful summary text" ]
+                                    , span [ Attr.class "ml-2" ]
+                                        [ text "Some helpful summary text" ]
                                     ]
                                 ]
                             , tr
@@ -750,10 +782,12 @@ viewEventsTable model =
                                     [ arrowIcon "us_evt_3"
                                     , domainIcon "job"
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ] [ text "2019-12-17 10:10:37.951 MST" ]
+                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                    [ text "2019-12-17 10:10:37.951 MST" ]
                                 , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                     [ badge "job:started"
-                                    , span [ Attr.class "ml-2" ] [ text "File extraction" ]
+                                    , span [ Attr.class "ml-2" ]
+                                        [ text "File extraction" ]
                                     ]
                                 ]
                             , tr
@@ -764,10 +798,12 @@ viewEventsTable model =
                                     [ arrowIcon "us_evt_3"
                                     , domainIcon "job"
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ] [ text "2019-12-17 10:10:37.951 MST" ]
+                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                    [ text "2019-12-17 10:10:37.951 MST" ]
                                 , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                     [ badge "job:updated"
-                                    , span [ Attr.class "ml-2" ] [ text "File extraction" ]
+                                    , span [ Attr.class "ml-2" ]
+                                        [ text "File extraction" ]
                                     ]
                                 ]
                             , tr
@@ -778,10 +814,12 @@ viewEventsTable model =
                                     [ arrowIcon "us_evt_3"
                                     , domainIcon "job"
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ] [ text "2019-12-17 10:10:37.951 MST" ]
+                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                    [ text "2019-12-17 10:10:37.951 MST" ]
                                 , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                     [ badge "job:failed"
-                                    , span [ Attr.class "ml-2" ] [ text "File extraction" ]
+                                    , span [ Attr.class "ml-2" ]
+                                        [ text "File extraction" ]
                                     ]
                                 ]
                             , tr
@@ -792,10 +830,12 @@ viewEventsTable model =
                                     [ arrowIcon "us_evt_3"
                                     , domainIcon "job"
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ] [ text "2019-12-17 10:10:37.951 MST" ]
+                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                    [ text "2019-12-17 10:10:37.951 MST" ]
                                 , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                     [ badge "job:completed"
-                                    , span [ Attr.class "ml-2" ] [ text "Some helpful summary text" ]
+                                    , span [ Attr.class "ml-2" ]
+                                        [ text "Some helpful summary text" ]
                                     ]
                                 ]
                             , tr
@@ -806,10 +846,12 @@ viewEventsTable model =
                                     [ arrowIcon "us_evt_4"
                                     , domainIcon "space"
                                     ]
-                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ] [ text "2019-12-17 10:10:37.951 MST" ]
+                                , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                    [ text "2019-12-17 10:10:37.951 MST" ]
                                 , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                     [ badge "space:created"
-                                    , span [ Attr.class "ml-2" ] [ text "Some helpful summary text" ]
+                                    , span [ Attr.class "ml-2" ]
+                                        [ text "Some helpful summary text" ]
                                     ]
                                 ]
                             ]
@@ -825,20 +867,18 @@ view model =
     { title = "Crispy Critters"
     , body =
         [ div [ Attr.class "w-4/5 m-auto mt-20" ]
-            -- [ section [ Attr.class "", mkTestAttribute "section-events" ]
-            --     [ viewMeta env space
-            --     , viewEventsTable model
-            --     ]
-            -- ]
             [ case model.accessToken of
                 NotAsked ->
                     section [ mkTestAttribute "section-auth", Attr.class "" ]
-                        [ div [ Attr.class "w-full" ] [ viewAuthForm model ]
+                        [ div [ Attr.class "w-full" ]
+                            [ viewAuthForm model
+                            ]
                         ]
 
                 Loading ->
                     section [ mkTestAttribute "section-auth", Attr.class "" ]
-                        [ div [ Attr.class "w-full" ] [ text "Loading..." ]
+                        [ div [ Attr.class "w-full" ]
+                            [ text "Loading..." ]
                         ]
 
                 Success _ ->
@@ -851,8 +891,23 @@ view model =
 
                 Failure _ ->
                     section [ mkTestAttribute "section-auth", Attr.class "" ]
-                        [ div [] [ text "Failure :(" ]
+                        [ div []
+                            [ text "Failure :(" ]
                         ]
+            , case model.selectedEnvironment of
+                Just env ->
+                    case model.selectedSpace of
+                        Just space ->
+                            section [ mkTestAttribute "section-events", Attr.class "" ]
+                                [ viewMeta env space
+                                , viewEventsTable model
+                                ]
+
+                        Nothing ->
+                            section [ mkTestAttribute "section-events", Attr.class "" ] []
+
+                Nothing ->
+                    section [ mkTestAttribute "section-events", Attr.class "" ] []
             ]
         ]
     }
