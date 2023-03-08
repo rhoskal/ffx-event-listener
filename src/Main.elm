@@ -126,7 +126,10 @@ update msg model =
             ( { model | showSecret = not model.showSecret }, Cmd.none )
 
         SelectedEnvironment env ->
-            ( { model | selectedEnvironment = Just env, showEnvironmentChoices = False }
+            ( { model
+                | selectedEnvironment = Just env
+                , showEnvironmentChoices = False
+              }
             , Space.list env.id (RD.toMaybe model.accessToken) GotSpacesResponse
             )
 
@@ -134,7 +137,10 @@ update msg model =
             ( { model | showEnvironmentChoices = not model.showEnvironmentChoices }, Cmd.none )
 
         SelectedSpace space ->
-            ( { model | selectedSpace = Just space }
+            ( { model
+                | selectedSpace = Just space
+                , showSpaceChoices = False
+              }
               -- , Api.get (Endpoint.getSubscriptionCreds <| Space.unwrap space.id) GotSubscriptionCredsResponse Endpoint.subscriptionCredsDecoder
             , Cmd.none
             )
@@ -195,92 +201,79 @@ mkTestAttribute key =
 
 viewAuthForm : Model -> Html Msg
 viewAuthForm model =
-    case model.accessToken of
-        NotAsked ->
-            div [ Attr.class "w-full" ]
-                [ form
-                    [ Attr.class ""
-                    , Events.onSubmit SendAuthRequest
+    form
+        [ Attr.class ""
+        , Events.onSubmit SendAuthRequest
+        ]
+        [ div [ Attr.class "grid grid-cols-2 gap-y-6 gap-x-8" ]
+            [ div [ Attr.class "" ]
+                [ label
+                    [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
+                    , Attr.for "client-id"
                     ]
-                    [ div [ Attr.class "grid grid-cols-2 gap-y-6 gap-x-8" ]
-                        [ div [ Attr.class "" ]
-                            [ label
-                                [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
-                                , Attr.for "client-id"
-                                ]
-                                [ text "Client Id" ]
-                            , div [ Attr.class "mt-2.5" ]
-                                [ input
-                                    [ mkTestAttribute "input-client-id"
-                                    , Attr.autocomplete False
-                                    , Attr.autofocus True
-                                    , Attr.class "block w-full rounded-md border-0 py-2 px-3.5 text-sm leading-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                                    , Attr.id "client-id"
-                                    , Attr.name "client-id"
-                                    , Events.onInput EnteredClientId
-                                    ]
-                                    []
-                                ]
-                            ]
-                        , div [ Attr.class "" ]
-                            [ div [ Attr.class "flex items-center justify-between" ]
-                                [ label
-                                    [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
-                                    , Attr.for "secret-key"
-                                    ]
-                                    [ text "Secret" ]
-                                , div
-                                    [ Attr.class "cursor-pointer text-gray-700"
-                                    , Events.onClick ToggleShowSecret
-                                    ]
-                                    [ if model.showSecret then
-                                        Icon.defaults
-                                            |> Icon.withSize 18
-                                            |> Icon.eyeClose
-
-                                      else
-                                        Icon.defaults
-                                            |> Icon.withSize 18
-                                            |> Icon.eyeOpen
-                                    ]
-                                ]
-                            , div [ Attr.class "mt-2.5" ]
-                                [ input
-                                    [ mkTestAttribute "input-secret-key"
-                                    , Attr.class "block w-full rounded-md border-0 py-2 px-3.5 text-sm leading-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                                    , Attr.name "secret-key"
-                                    , Attr.id "secret-key"
-                                    , Attr.autocomplete False
-                                    , Attr.type_
-                                        (if model.showSecret then
-                                            "text"
-
-                                         else
-                                            "password"
-                                        )
-                                    , Events.onInput EnteredSecretKey
-                                    ]
-                                    []
-                                ]
-                            ]
-                        , button
-                            [ mkTestAttribute "btn-auth-submit"
-                            , Attr.class "col-span-full inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm bg-indigo-600 text-white"
-                            , Attr.type_ "submit"
-                            ]
-                            [ text "Authenticate" ]
+                    [ text "Client Id" ]
+                , div [ Attr.class "mt-2.5" ]
+                    [ input
+                        [ mkTestAttribute "input-client-id"
+                        , Attr.autocomplete False
+                        , Attr.autofocus True
+                        , Attr.class "block w-full rounded-md border-0 py-2 px-3.5 text-sm leading-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+                        , Attr.id "client-id"
+                        , Attr.name "client-id"
+                        , Events.onInput EnteredClientId
                         ]
+                        []
                     ]
                 ]
+            , div [ Attr.class "" ]
+                [ div [ Attr.class "flex items-center justify-between" ]
+                    [ label
+                        [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
+                        , Attr.for "secret-key"
+                        ]
+                        [ text "Secret" ]
+                    , div
+                        [ Attr.class "cursor-pointer text-gray-700"
+                        , Events.onClick ToggleShowSecret
+                        ]
+                        [ if model.showSecret then
+                            Icon.defaults
+                                |> Icon.withSize 18
+                                |> Icon.eyeClose
 
-        Loading ->
-            div [] [ text "loading" ]
+                          else
+                            Icon.defaults
+                                |> Icon.withSize 18
+                                |> Icon.eyeOpen
+                        ]
+                    ]
+                , div [ Attr.class "mt-2.5" ]
+                    [ input
+                        [ mkTestAttribute "input-secret-key"
+                        , Attr.class "block w-full rounded-md border-0 py-2 px-3.5 text-sm leading-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+                        , Attr.name "secret-key"
+                        , Attr.id "secret-key"
+                        , Attr.autocomplete False
+                        , Attr.type_
+                            (if model.showSecret then
+                                "text"
 
-        Success _ ->
-            div [] [ text "success!" ]
-
-        Failure _ ->
-            div [] [ text "failure :(" ]
+                             else
+                                "password"
+                            )
+                        , Events.onInput EnteredSecretKey
+                        ]
+                        []
+                    ]
+                ]
+            , button
+                [ mkTestAttribute "btn-auth-submit"
+                , Attr.class "col-span-full inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm bg-indigo-600 text-white"
+                , Attr.type_ "submit"
+                ]
+                [ text "Authenticate" ]
+            ]
+        ]
 
 
 viewMeta : Environment -> Space -> Html Msg
@@ -356,13 +349,13 @@ viewSelectEnvironment : Model -> Html Msg
 viewSelectEnvironment model =
     case model.environments of
         NotAsked ->
-            div [ Attr.class "" ] [ text "Not Asked" ]
+            div [ Attr.class "w-full" ] [ text "Not Asked" ]
 
         Loading ->
-            div [ Attr.class "" ] [ text "Loading..." ]
+            div [ Attr.class "w-full" ] [ text "Loading..." ]
 
         Success environments ->
-            div [ Attr.class "" ]
+            div [ Attr.class "w-full" ]
                 [ label
                     [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
                     , Attr.id "listbox-environments-label"
@@ -455,20 +448,20 @@ viewSelectEnvironment model =
                 ]
 
         Failure _ ->
-            div [ Attr.class "" ] [ text "Failure :(" ]
+            div [ Attr.class "w-full" ] [ text "Failure :(" ]
 
 
 viewSelectSpace : Model -> Html Msg
 viewSelectSpace model =
     case model.spaces of
         NotAsked ->
-            div [ Attr.class "" ] [ text "Not Asked" ]
+            div [ Attr.class "w-full" ] [ text "Not Asked" ]
 
         Loading ->
-            div [ Attr.class "" ] [ text "Loading..." ]
+            div [ Attr.class "w-full" ] [ text "Loading..." ]
 
         Success spaces ->
-            div [ Attr.class "" ]
+            div [ Attr.class "w-full" ]
                 [ label
                     [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
                     , Attr.id "listbox-spaces-label"
@@ -562,7 +555,7 @@ viewSelectSpace model =
                 ]
 
         Failure _ ->
-            div [ Attr.class "" ] [ text "Failure :(" ]
+            div [ Attr.class "w-full" ] [ text "Failure :(" ]
 
 
 viewEventsTable : Model -> Html Msg
@@ -829,15 +822,7 @@ viewEventsTable model =
 
 view : Model -> Browser.Document Msg
 view model =
-    -- let
-    --     env : Environment
-    --     env =
-    --         Environment "us_env_GHasdfyU" "us_acc_FBClpjku" "Some Env Name"
-    --     space : Space
-    --     space =
-    --         Space "us_sp_UxfreSbn" Nothing Nothing Nothing (Just "10 Jan 2023") "us_env_GHasdfyU" Nothing
-    -- in
-    { title = "Hello"
+    { title = "Crispy Critters"
     , body =
         [ div [ Attr.class "w-4/5 m-auto mt-20" ]
             -- [ section [ Attr.class "", mkTestAttribute "section-events" ]
@@ -845,17 +830,29 @@ view model =
             --     , viewEventsTable model
             --     ]
             -- ]
-            [ section
-                [ mkTestAttribute "section-preflight"
-                , Attr.class "flex items-center justify-between"
-                ]
-                [ viewAuthForm model
-                , div [ Attr.class "border-r-2 border-gray-300 w-1 h-12 mx-8" ] []
-                , div [ Attr.class "flex justify-between w-full" ]
-                    [ viewSelectEnvironment model
-                    , viewSelectSpace model
-                    ]
-                ]
+            [ case model.accessToken of
+                NotAsked ->
+                    section [ mkTestAttribute "section-auth", Attr.class "" ]
+                        [ div [ Attr.class "w-full" ] [ viewAuthForm model ]
+                        ]
+
+                Loading ->
+                    section [ mkTestAttribute "section-auth", Attr.class "" ]
+                        [ div [ Attr.class "w-full" ] [ text "Loading..." ]
+                        ]
+
+                Success _ ->
+                    section [ mkTestAttribute "section-selections", Attr.class "" ]
+                        [ div [ Attr.class "flex space-x-20" ]
+                            [ viewSelectEnvironment model
+                            , viewSelectSpace model
+                            ]
+                        ]
+
+                Failure _ ->
+                    section [ mkTestAttribute "section-auth", Attr.class "" ]
+                        [ div [] [ text "Failure :(" ]
+                        ]
             ]
         ]
     }
