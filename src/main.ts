@@ -4,6 +4,8 @@ import * as IO from "fp-ts/IO";
 import * as J from "fp-ts/Json";
 import { pipe } from "fp-ts/function";
 import { match } from "ts-pattern";
+import * as Sentry from "@sentry/browser";
+import { BrowserTracing } from "@sentry/tracing";
 
 import { Elm } from "./Main.elm";
 import * as C from "./codecs";
@@ -13,6 +15,18 @@ const app = Elm.Main.init({
   node: document.querySelector<HTMLDivElement>("#root"),
   flags: null,
 });
+
+Sentry.init({
+  dsn: import.meta.env.VITE_SENTRY_DSN ?? "",
+  integrations: [new BrowserTracing()],
+
+  // Set tracesSampleRate to 1.0 to capture 100%
+  // of transactions for performance monitoring.
+  // We recommend adjusting this value in production
+  tracesSampleRate: 1.0,
+});
+
+const isDev = () => import.meta.env.DEV;
 
 const openExternalLink =
   (url: string): IO.IO<void> =>
@@ -27,7 +41,7 @@ app.ports.interopFromElm.subscribe((fromElm) => {
       const pubnub = new PubNub({
         subscribeKey: data.subscribeKey,
         userId: data.accountId,
-        logVerbosity: import.meta.env.DEV,
+        logVerbosity: isDev(),
       });
 
       pubnub.addListener({
@@ -47,6 +61,10 @@ app.ports.interopFromElm.subscribe((fromElm) => {
             E.match(
               () => {
                 console.warn("[DECODER] Unknown message:", m.message);
+
+                if (!isDev()) {
+                  Sentry.captureException(m.message);
+                }
               },
               (m_) => {
                 console.log(`[DECODER] Found: ${m_.domain}, ${m_.topic}`);

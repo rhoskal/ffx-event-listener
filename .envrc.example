@@ -1,1 +1,3 @@
 use nix
+
+VITE_SENTRY_DSN=some_dsn
