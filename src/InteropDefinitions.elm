@@ -5,6 +5,7 @@ module InteropDefinitions exposing
     , interop
     )
 
+import PubNub exposing (SubscriptionCreds)
 import TsJson.Decode as TsDecode exposing (Decoder)
 import TsJson.Decode.Pipeline exposing (required)
 import TsJson.Encode as TsEncode exposing (Encoder)
@@ -24,6 +25,7 @@ interop =
 
 type FromElm
     = OpenExternalLink String
+    | UsePubNubCreds SubscriptionCreds
 
 
 type ToElm
@@ -68,13 +70,25 @@ type alias Flags =
 fromElm : Encoder FromElm
 fromElm =
     TsEncode.union
-        (\vExternalLink value ->
+        (\vExternalLink vPubNubCreds value ->
             case value of
                 OpenExternalLink string ->
                     vExternalLink string
+
+                UsePubNubCreds creds ->
+                    vPubNubCreds creds
         )
         |> TsEncode.variantTagged "openExternalLink"
-            (TsEncode.object [ TsEncode.required "url" identity TsEncode.string ])
+            (TsEncode.object
+                [ TsEncode.required "url" identity TsEncode.string ]
+            )
+        |> TsEncode.variantTagged "subscriptionCreds"
+            (TsEncode.object
+                [ TsEncode.required "accountId" .accountId TsEncode.string
+                , TsEncode.required "subscribeKey" .subscribeKey TsEncode.string
+                , TsEncode.required "token" .token TsEncode.string
+                ]
+            )
         |> TsEncode.buildUnion
 
 

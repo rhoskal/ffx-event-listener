@@ -177,7 +177,16 @@ update msg model =
             ( { model | spaces = response }, Cmd.none )
 
         GotSubscriptionCredsResponse response ->
-            ( { model | subscriptionCreds = response }, Cmd.none )
+            ( { model | subscriptionCreds = response }
+            , case response of
+                Success data ->
+                    data
+                        |> InteropDefinitions.UsePubNubCreds
+                        |> InteropPorts.fromElm
+
+                _ ->
+                    Cmd.none
+            )
 
 
 

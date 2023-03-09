@@ -23,50 +23,48 @@ const openExternalLink =
 app.ports.interopFromElm.subscribe((fromElm) => {
   return match(fromElm)
     .with({ tag: "openExternalLink" }, ({ data }) => openExternalLink(data.url)())
+    .with({ tag: "subscriptionCreds" }, ({ data }) => {
+      const pubnub = new PubNub({
+        subscribeKey: data.subscribeKey,
+        userId: data.accountId,
+        logVerbosity: import.meta.env.DEV,
+      });
+
+      pubnub.addListener({
+        message: function (m) {
+          // console.log("message:", m.message);
+
+          pipe(
+            J.parse(m.message),
+            E.chainW((json) => {
+              return pipe(
+                C.workbookEventCodec.decode(json),
+                E.altW(() => C.fileEventCodec.decode(json)),
+                E.altW(() => C.jobEventCodec.decode(json)),
+                E.altW(() => C.spaceEventCodec.decode(json)),
+              );
+            }),
+            E.match(
+              () => {
+                console.warn("[DECODER] Unknown message:", m.message);
+              },
+              (m_) => {
+                console.log(`[DECODER] Found: ${m_.domain}, ${m_.topic}`);
+                app.ports.interopToElm.send(m_);
+              },
+            ),
+          );
+        },
+      });
+
+      pubnub.setToken(data.token);
+
+      const spaceId = "us_sp_bjo3h6rU";
+      pubnub.subscribe({
+        channels: [`space.${spaceId}`],
+      });
+    })
     .exhaustive();
 });
 
-app.ports.interopFromElm.unsubscribe((_fromElm) => {});
-
-const pubnub = new PubNub({
-  subscribeKey: "mySubscribeKey",
-  userId: "myUniqueUUID",
-  logVerbosity: import.meta.env.DEV,
-});
-
-pubnub.addListener({
-  message: function (m) {
-    // console.log("message:", m.message);
-
-    pipe(
-      J.parse(m.message),
-      E.chainW((json) => {
-        return pipe(
-          C.workbookEventCodec.decode(json),
-          E.altW(() => C.fileEventCodec.decode(json)),
-          E.altW(() => C.jobEventCodec.decode(json)),
-          E.altW(() => C.spaceEventCodec.decode(json)),
-        );
-      }),
-      E.match(
-        () => {
-          console.warn("[DECODER] Unknown message:", m.message);
-        },
-        (m_) => {
-          console.log(`[DECODER] Found: ${m_.domain}, ${m_.topic}`);
-          app.ports.interopToElm.send(m_);
-        },
-      ),
-    );
-  },
-});
-
-const JWT = "";
-const token = pubnub.parseToken(JWT);
-console.log(token);
-
-pubnub.setToken(JWT);
-
-pubnub.subscribe({
-  channels: ["space.X"],
-});
+// app.ports.interopFromElm.unsubscribe((_fromElm) => {});
