@@ -59,9 +59,8 @@ app.ports.interopFromElm.subscribe((fromElm) => {
 
       pubnub.setToken(data.token);
 
-      const spaceId = "us_sp_bjo3h6rU";
       pubnub.subscribe({
-        channels: [`space.${spaceId}`],
+        channels: [`space.${data.spaceId}`],
       });
     })
     .exhaustive();

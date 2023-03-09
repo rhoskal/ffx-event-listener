@@ -180,9 +180,18 @@ update msg model =
             ( { model | subscriptionCreds = response }
             , case response of
                 Success data ->
-                    data
-                        |> InteropDefinitions.UsePubNubCreds
-                        |> InteropPorts.fromElm
+                    case model.selectedSpace of
+                        Just space ->
+                            { accountId = data.accountId
+                            , spaceId = space.id
+                            , subscribeKey = data.subscribeKey
+                            , token = data.token
+                            }
+                                |> InteropDefinitions.UsePubNubCreds
+                                |> InteropPorts.fromElm
+
+                        Nothing ->
+                            Cmd.none
 
                 _ ->
                     Cmd.none

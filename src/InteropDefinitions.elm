@@ -6,6 +6,7 @@ module InteropDefinitions exposing
     )
 
 import PubNub exposing (SubscriptionCreds)
+import Space exposing (SpaceId)
 import TsJson.Decode as TsDecode exposing (Decoder)
 import TsJson.Decode.Pipeline exposing (required)
 import TsJson.Encode as TsEncode exposing (Encoder)
@@ -25,7 +26,12 @@ interop =
 
 type FromElm
     = OpenExternalLink String
-    | UsePubNubCreds SubscriptionCreds
+    | UsePubNubCreds
+        { accountId : String
+        , spaceId : SpaceId
+        , subscribeKey : String
+        , token : String
+        }
 
 
 type ToElm
@@ -85,6 +91,7 @@ fromElm =
         |> TsEncode.variantTagged "subscriptionCreds"
             (TsEncode.object
                 [ TsEncode.required "accountId" .accountId TsEncode.string
+                , TsEncode.required "spaceId" .spaceId (TsEncode.map Space.unwrap TsEncode.string)
                 , TsEncode.required "subscribeKey" .subscribeKey TsEncode.string
                 , TsEncode.required "token" .token TsEncode.string
                 ]
