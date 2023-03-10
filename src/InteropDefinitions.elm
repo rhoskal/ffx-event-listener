@@ -6,6 +6,7 @@ module InteropDefinitions exposing
     )
 
 import Environment exposing (EnvironmentId(..))
+import Iso8601
 import PubNub
     exposing
         ( Event
@@ -14,6 +15,7 @@ import PubNub
         , EventTopic(..)
         )
 import Space exposing (SpaceId(..))
+import Time exposing (Posix)
 import TsJson.Decode as TsDecode exposing (Decoder)
 import TsJson.Decode.Pipeline exposing (optional, required)
 import TsJson.Encode as TsEncode exposing (Encoder)
@@ -104,7 +106,7 @@ domainEventDecoder =
         |> required "topic" topicDecoder
         |> required "context" contextDecoder
         |> required "payload" TsDecode.value
-        |> optional "createdAt" (TsDecode.maybe TsDecode.string) Nothing
+        |> optional "createdAt" (TsDecode.maybe posixFromIso8601Decoder) Nothing
 
 
 domainDecoder : Decoder EventDomain
@@ -168,6 +170,17 @@ environmentIdDecoder =
 spaceIdDecoder : Decoder SpaceId
 spaceIdDecoder =
     TsDecode.map SpaceId TsDecode.string
+
+
+posixFromIso8601Decoder : Decoder Posix
+posixFromIso8601Decoder =
+    let
+        decoder : Decoder (String -> Posix)
+        decoder =
+            TsDecode.succeed <|
+                (Iso8601.toTime >> Result.withDefault (Time.millisToPosix 0))
+    in
+    TsDecode.andMap TsDecode.string decoder
 
 
 flags : Decoder Flags

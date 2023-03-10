@@ -712,7 +712,7 @@ viewEventsTable model =
                                                 , domainIcon event.domain
                                                 ]
                                             , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                                [ text "2019-12-17 10:10:37.951 MST" ]
+                                                [ text <| Maybe.withDefault "Unknown DateTime" (Maybe.map posixToString event.createdAt) ]
                                             , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                                 [ badge (PubNub.topicToString event.topic)
                                                 , span [ Attr.class "ml-2" ]

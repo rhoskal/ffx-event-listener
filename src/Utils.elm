@@ -2,7 +2,7 @@ module Utils exposing (mkTestAttribute, posixToString)
 
 import Html exposing (Attribute)
 import Html.Attributes as Attr
-import Time exposing (Month(..), Posix)
+import Time exposing (Posix)
 
 
 mkTestAttribute : String -> Attribute msg
@@ -15,105 +15,103 @@ posixToString time =
     let
         year : String
         year =
-            String.fromInt (Time.toYear Time.utc time)
+            Time.toYear Time.utc time
+                |> String.fromInt
 
         month : String
         month =
             case Time.toMonth Time.utc time of
-                Jan ->
+                Time.Jan ->
                     "Jan"
 
-                Feb ->
+                Time.Feb ->
                     "Feb"
 
-                Mar ->
+                Time.Mar ->
                     "Mar"
 
-                Apr ->
+                Time.Apr ->
                     "Apr"
 
-                May ->
+                Time.May ->
                     "May"
 
-                Jun ->
+                Time.Jun ->
                     "Jun"
 
-                Jul ->
+                Time.Jul ->
                     "Jul"
 
-                Aug ->
+                Time.Aug ->
                     "Aug"
 
-                Sep ->
+                Time.Sep ->
                     "Sep"
 
-                Oct ->
+                Time.Oct ->
                     "Oct"
 
-                Nov ->
+                Time.Nov ->
                     "Nov"
 
-                Dec ->
+                Time.Dec ->
                     "Dec"
 
         day : String
         day =
-            (\d ->
-                case d of
-                    1 ->
-                        "1st"
+            Time.toDay Time.utc time
+                |> (\d ->
+                        case d of
+                            1 ->
+                                "1st"
 
-                    2 ->
-                        "2nd"
+                            2 ->
+                                "2nd"
 
-                    3 ->
-                        "3rd"
+                            3 ->
+                                "3rd"
 
-                    _ ->
-                        String.fromInt d ++ "th"
-            )
-            <|
-                Time.toDay Time.utc time
+                            _ ->
+                                String.fromInt d ++ "th"
+                   )
 
         hour : String
         hour =
-            (\h ->
-                if h > 12 then
-                    "0" ++ String.fromInt (h - 12)
+            Time.toHour Time.utc time
+                |> (\h ->
+                        if h < 10 then
+                            "0" ++ String.fromInt h
 
-                else
-                    "0" ++ String.fromInt h
-            )
-            <|
-                Time.toHour Time.utc time
+                        else
+                            String.fromInt h
+                   )
 
         minutes : String
         minutes =
-            (\m ->
-                if m < 10 then
-                    "0" ++ String.fromInt m
+            Time.toMinute Time.utc time
+                |> (\m ->
+                        if m < 10 then
+                            "0" ++ String.fromInt m
 
-                else
-                    String.fromInt m
-            )
-            <|
-                Time.toMinute Time.utc time
+                        else
+                            String.fromInt m
+                   )
 
         seconds : String
         seconds =
-            (\s ->
-                if s < 10 then
-                    "0" ++ String.fromInt s
+            Time.toSecond Time.utc time
+                |> (\s ->
+                        if s < 10 then
+                            "0" ++ String.fromInt s
 
-                else
-                    String.fromInt s
-            )
-            <|
-                Time.toSecond Time.utc time
+                        else
+                            String.fromInt s
+                   )
 
         millis : String
         millis =
-            String.fromInt (Time.toMillis Time.utc time)
+            Time.toMillis Time.utc time
+                |> String.fromInt
     in
     year
         ++ " "

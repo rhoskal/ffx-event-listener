@@ -8,9 +8,6 @@ module PubNub exposing
     , topicToString
     )
 
--- import Iso8601
--- import Time
-
 import Api exposing (Cred)
 import Api.Endpoint as Endpoint
 import Environment exposing (EnvironmentId)
@@ -18,6 +15,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (WebData)
 import Space exposing (SpaceId)
+import Time
 
 
 type alias SubscriptionCreds =
@@ -33,9 +31,7 @@ type alias Event =
     , topic : EventTopic
     , context : EventContext
     , payload : Decode.Value
-
-    -- , createdAt : Maybe Time.Posix
-    , createdAt : Maybe String
+    , createdAt : Maybe Time.Posix
     }
 
 
