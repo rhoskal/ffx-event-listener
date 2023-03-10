@@ -1,6 +1,7 @@
 module Environment exposing
     ( Environment
-    , EnvironmentId
+    , EnvironmentId(..)
+    , environmentDecoder
     , environmentIdDecoder
     , list
     , unwrap

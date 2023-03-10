@@ -12,7 +12,7 @@ import Icon
 import InteropDefinitions
 import InteropPorts
 import Json.Decode as Decode
-import PubNub exposing (SubscriptionCreds)
+import PubNub exposing (DomainEvent, SubscriptionCreds)
 import RemoteData as RD exposing (RemoteData(..), WebData)
 import Space exposing (Space)
 import Utils exposing (mkTestAttribute)
@@ -33,7 +33,7 @@ type alias Model =
     , showSpaceChoices : Bool
     , selectedSpace : Maybe Space
     , spaces : WebData (List Space)
-    , events : List String
+    , events : List DomainEvent
     , subscriptionCreds : WebData SubscriptionCreds
     , expandedEventId : Maybe String
     }
@@ -75,6 +75,7 @@ type Msg
     = Reset
     | OpenExternalLink String
     | ClickedEvent String
+    | ReceivedDomainEvent (Result Decode.Error InteropDefinitions.ToElm)
       -- Form
     | EnteredClientId String
     | EnteredSecretKey String
@@ -115,6 +116,18 @@ update msg model =
 
                 Nothing ->
                     ( { model | expandedEventId = Just incomingEventId }, Cmd.none )
+
+        ReceivedDomainEvent result ->
+            case result of
+                Ok (InteropDefinitions.PNDomainEvent domainEvent) ->
+                    ( { model | events = domainEvent :: model.events }, Cmd.none )
+
+                Err error ->
+                    ( model
+                    , Decode.errorToString error
+                        |> InteropDefinitions.ReportIssue
+                        |> InteropPorts.fromElm
+                    )
 
         EnteredClientId clientId ->
             ( { model | clientId = clientId }, Cmd.none )
@@ -204,7 +217,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    InteropPorts.toElm |> Sub.map ReceivedDomainEvent
 
 
 

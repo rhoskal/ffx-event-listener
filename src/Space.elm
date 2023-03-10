@@ -1,7 +1,9 @@
 module Space exposing
     ( Space
-    , SpaceId
+    , SpaceId(..)
     , list
+    , spaceDecoder
+    , spaceIdDecoder
     , unwrap
     )
 
