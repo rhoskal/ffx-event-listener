@@ -1,10 +1,11 @@
 module PubNub exposing
-    ( Context
-    , Domain(..)
-    , DomainEvent
+    ( Event
+    , EventContext
+    , EventDomain(..)
+    , EventTopic(..)
     , SubscriptionCreds
-    , Topic(..)
     , auth
+    , topicToString
     )
 
 -- import Iso8601
@@ -26,11 +27,11 @@ type alias SubscriptionCreds =
     }
 
 
-type alias DomainEvent =
+type alias Event =
     { id : String
-    , domain : Domain
-    , topic : Topic
-    , context : Context
+    , domain : EventDomain
+    , topic : EventTopic
+    , context : EventContext
     , payload : Decode.Value
 
     -- , createdAt : Maybe Time.Posix
@@ -38,14 +39,14 @@ type alias DomainEvent =
     }
 
 
-type Domain
-    = File
-    | Job
-    | Space
-    | Workbook
+type EventDomain
+    = FileDomain
+    | JobDomain
+    | SpaceDomain
+    | WorkbookDomain
 
 
-type Topic
+type EventTopic
     = JobCompleted
     | JobDeleted
     | JobFailed
@@ -69,7 +70,7 @@ type Topic
     | WorkbookRemoved
 
 
-type alias Context =
+type alias EventContext =
     { actionName : Maybe String
     , accountId : String
     , environmentId : EnvironmentId
@@ -108,3 +109,74 @@ subscriptionCredsDecoder =
                 |> required "token" Decode.string
     in
     Decode.at [ "data" ] decoder
+
+
+
+-- HELPERS
+
+
+topicToString : EventTopic -> String
+topicToString topic =
+    case topic of
+        JobCompleted ->
+            "job:completed"
+
+        JobDeleted ->
+            "job:deleted"
+
+        JobFailed ->
+            "job:failed"
+
+        JobStarted ->
+            "job:started"
+
+        JobUpdated ->
+            "job:updated"
+
+        JobWaiting ->
+            "job:waiting"
+
+        RecordsCreated ->
+            "records:created"
+
+        RecordsDeleted ->
+            "records:deleted"
+
+        RecordsUpdated ->
+            "records:updated"
+
+        SheetValidated ->
+            "sheet:validated"
+
+        SpaceAdded ->
+            "space:added"
+
+        SpaceRemoved ->
+            "space:removed"
+
+        UploadCompleted ->
+            "upload:completed"
+
+        UploadFailed ->
+            "upload:failed"
+
+        UploadStarted ->
+            "upload:started"
+
+        UserAdded ->
+            "user:added"
+
+        UserOffline ->
+            "user:offline"
+
+        UserOnline ->
+            "user:online"
+
+        UserRemoved ->
+            "user:removed"
+
+        WorkbookAdded ->
+            "workbook:added"
+
+        WorkbookRemoved ->
+            "workbook:removed"

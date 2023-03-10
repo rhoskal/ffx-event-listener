@@ -8,10 +8,10 @@ module InteropDefinitions exposing
 import Environment exposing (EnvironmentId(..))
 import PubNub
     exposing
-        ( Context
-        , Domain(..)
-        , DomainEvent
-        , Topic(..)
+        ( Event
+        , EventContext
+        , EventDomain(..)
+        , EventTopic(..)
         )
 import Space exposing (SpaceId(..))
 import TsJson.Decode as TsDecode exposing (Decoder)
@@ -43,7 +43,7 @@ type FromElm
 
 
 type ToElm
-    = PNDomainEvent DomainEvent
+    = PNDomainEvent Event
 
 
 type alias Flags =
@@ -96,9 +96,9 @@ toElm =
     TsDecode.map PNDomainEvent domainEventDecoder
 
 
-domainEventDecoder : Decoder DomainEvent
+domainEventDecoder : Decoder Event
 domainEventDecoder =
-    TsDecode.succeed DomainEvent
+    TsDecode.succeed Event
         |> required "id" TsDecode.string
         |> required "domain" domainDecoder
         |> required "topic" topicDecoder
@@ -107,17 +107,17 @@ domainEventDecoder =
         |> optional "createdAt" (TsDecode.maybe TsDecode.string) Nothing
 
 
-domainDecoder : Decoder Domain
+domainDecoder : Decoder EventDomain
 domainDecoder =
     TsDecode.stringUnion
-        [ ( "file", File )
-        , ( "job", Job )
-        , ( "space", Space )
-        , ( "workbook", Workbook )
+        [ ( "file", FileDomain )
+        , ( "job", JobDomain )
+        , ( "space", SpaceDomain )
+        , ( "workbook", WorkbookDomain )
         ]
 
 
-topicDecoder : Decoder Topic
+topicDecoder : Decoder EventTopic
 topicDecoder =
     TsDecode.stringUnion
         [ ( "job:completed", JobCompleted )
@@ -144,9 +144,9 @@ topicDecoder =
         ]
 
 
-contextDecoder : Decoder Context
+contextDecoder : Decoder EventContext
 contextDecoder =
-    TsDecode.succeed Context
+    TsDecode.succeed EventContext
         |> optional "actionName" (TsDecode.maybe TsDecode.string) Nothing
         |> required "accountId" TsDecode.string
         |> required "environmentId" environmentIdDecoder
