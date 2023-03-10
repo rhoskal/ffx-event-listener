@@ -5,10 +5,17 @@ module InteropDefinitions exposing
     , interop
     )
 
-import PubNub exposing (SubscriptionCreds)
-import Space exposing (SpaceId)
+import Environment exposing (EnvironmentId(..))
+import PubNub
+    exposing
+        ( Context
+        , Domain(..)
+        , DomainEvent
+        , Topic(..)
+        )
+import Space exposing (SpaceId(..))
 import TsJson.Decode as TsDecode exposing (Decoder)
-import TsJson.Decode.Pipeline exposing (required)
+import TsJson.Decode.Pipeline exposing (optional, required)
 import TsJson.Encode as TsEncode exposing (Encoder)
 
 
@@ -26,6 +33,7 @@ interop =
 
 type FromElm
     = OpenExternalLink String
+    | ReportIssue String
     | UsePubNubCreds
         { accountId : String
         , spaceId : SpaceId
@@ -35,34 +43,7 @@ type FromElm
 
 
 type ToElm
-    = PNWorkbookEvent WorkbookEvent
-    | PNFileEvent FileEvent
-    | PNJobEvent JobEvent
-    | PNSpaceEvent SpaceEvent
-
-
-type alias WorkbookEvent =
-    { id : String
-    , createdAt : String
-    }
-
-
-type alias FileEvent =
-    { id : String
-    , createdAt : String
-    }
-
-
-type alias JobEvent =
-    { id : String
-    , createdAt : String
-    }
-
-
-type alias SpaceEvent =
-    { id : String
-    , createdAt : String
-    }
+    = PNDomainEvent DomainEvent
 
 
 type alias Flags =
@@ -76,10 +57,13 @@ type alias Flags =
 fromElm : Encoder FromElm
 fromElm =
     TsEncode.union
-        (\vExternalLink vPubNubCreds value ->
+        (\vExternalLink vReportIssue vPubNubCreds value ->
             case value of
                 OpenExternalLink string ->
                     vExternalLink string
+
+                ReportIssue string ->
+                    vReportIssue string
 
                 UsePubNubCreds creds ->
                     vPubNubCreds creds
@@ -87,6 +71,10 @@ fromElm =
         |> TsEncode.variantTagged "openExternalLink"
             (TsEncode.object
                 [ TsEncode.required "url" identity TsEncode.string ]
+            )
+        |> TsEncode.variantTagged "reportIssue"
+            (TsEncode.object
+                [ TsEncode.required "message" identity TsEncode.string ]
             )
         |> TsEncode.variantTagged "subscriptionCreds"
             (TsEncode.object
@@ -105,40 +93,81 @@ fromElm =
 
 toElm : Decoder ToElm
 toElm =
-    TsDecode.discriminatedUnion "domain"
-        [ ( "workbook", TsDecode.map PNWorkbookEvent workbookEventDecoder )
-        , ( "file", TsDecode.map PNFileEvent fileEventDecoder )
-        , ( "job", TsDecode.map PNJobEvent jobEventDecoder )
-        , ( "space", TsDecode.map PNSpaceEvent spaceEventDecoder )
+    TsDecode.map PNDomainEvent domainEventDecoder
+
+
+domainEventDecoder : Decoder DomainEvent
+domainEventDecoder =
+    TsDecode.succeed DomainEvent
+        |> required "id" TsDecode.string
+        |> required "domain" domainDecoder
+        |> required "topic" topicDecoder
+        |> required "context" contextDecoder
+        |> required "payload" TsDecode.value
+        |> optional "createdAt" (TsDecode.maybe TsDecode.string) Nothing
+
+
+domainDecoder : Decoder Domain
+domainDecoder =
+    TsDecode.stringUnion
+        [ ( "file", File )
+        , ( "job", Job )
+        , ( "space", Space )
+        , ( "workbook", Workbook )
         ]
 
 
-workbookEventDecoder : Decoder WorkbookEvent
-workbookEventDecoder =
-    TsDecode.succeed WorkbookEvent
-        |> required "id" TsDecode.string
-        |> required "createdAt" TsDecode.string
+topicDecoder : Decoder Topic
+topicDecoder =
+    TsDecode.stringUnion
+        [ ( "job:completed", JobCompleted )
+        , ( "job:deleted", JobDeleted )
+        , ( "job:failed", JobFailed )
+        , ( "job:started", JobStarted )
+        , ( "job:updated", JobUpdated )
+        , ( "job:waiting", JobWaiting )
+        , ( "records:created", RecordsCreated )
+        , ( "records:deleted", RecordsDeleted )
+        , ( "records:updated", RecordsUpdated )
+        , ( "sheet:validated", SheetValidated )
+        , ( "space:added", SpaceAdded )
+        , ( "space:removed", SpaceRemoved )
+        , ( "upload:completed", UploadCompleted )
+        , ( "upload:failed", UploadFailed )
+        , ( "upload:started", UploadStarted )
+        , ( "user:added", UserAdded )
+        , ( "user:offline", UserOffline )
+        , ( "user:online", UserOnline )
+        , ( "user:removed", UserRemoved )
+        , ( "workbook:added", WorkbookAdded )
+        , ( "workbook:removed", WorkbookRemoved )
+        ]
 
 
-fileEventDecoder : Decoder FileEvent
-fileEventDecoder =
-    TsDecode.succeed FileEvent
-        |> required "id" TsDecode.string
-        |> required "createdAt" TsDecode.string
+contextDecoder : Decoder Context
+contextDecoder =
+    TsDecode.succeed Context
+        |> optional "actionName" (TsDecode.maybe TsDecode.string) Nothing
+        |> required "accountId" TsDecode.string
+        |> required "environmentId" environmentIdDecoder
+        |> optional "spaceId" (TsDecode.maybe spaceIdDecoder) Nothing
+        |> optional "workbookId" (TsDecode.maybe TsDecode.string) Nothing
+        |> optional "sheetId" (TsDecode.maybe TsDecode.string) Nothing
+        |> optional "sheetSlug" (TsDecode.maybe TsDecode.string) Nothing
+        |> optional "versionId" (TsDecode.maybe TsDecode.string) Nothing
+        |> optional "jobId" (TsDecode.maybe TsDecode.string) Nothing
+        |> optional "fileId" (TsDecode.maybe TsDecode.string) Nothing
+        |> optional "procedingEventId" (TsDecode.maybe TsDecode.string) Nothing
 
 
-jobEventDecoder : Decoder JobEvent
-jobEventDecoder =
-    TsDecode.succeed JobEvent
-        |> required "id" TsDecode.string
-        |> required "createdAt" TsDecode.string
+environmentIdDecoder : Decoder EnvironmentId
+environmentIdDecoder =
+    TsDecode.map EnvironmentId TsDecode.string
 
 
-spaceEventDecoder : Decoder SpaceEvent
-spaceEventDecoder =
-    TsDecode.succeed SpaceEvent
-        |> required "id" TsDecode.string
-        |> required "createdAt" TsDecode.string
+spaceIdDecoder : Decoder SpaceId
+spaceIdDecoder =
+    TsDecode.map SpaceId TsDecode.string
 
 
 flags : Decoder Flags

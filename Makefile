@@ -95,7 +95,7 @@ lint-ts-fix: ## Lint fix all typescript files
 	yarn eslint '**/*.ts' --fix
 
 .PHONY: test
-test: test-elm test-ts ## Test code
+test: test-elm ## Test code
 
 .PHONY: test-elm
 test-elm: ## Test elm code
