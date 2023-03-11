@@ -684,7 +684,7 @@ viewEventsTable model =
                         [ text "Export" ]
                     ]
                 ]
-            , div [ Attr.class "mt-8 flow-root" ]
+            , div [ Attr.class "mt-8 flow-root ring-1 ring-gray-300 rounded-lg" ]
                 [ div [ Attr.class "-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8" ]
                     [ div [ Attr.class "inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8" ]
                         [ table [ Attr.class "min-w-full divide-y divide-gray-300" ]
