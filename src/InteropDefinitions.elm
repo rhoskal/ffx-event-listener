@@ -122,7 +122,8 @@ domainDecoder =
 topicDecoder : Decoder EventTopic
 topicDecoder =
     TsDecode.stringUnion
-        [ ( "job:completed", JobCompleted )
+        [ ( "action:triggered", ActionTriggered )
+        , ( "job:completed", JobCompleted )
         , ( "job:deleted", JobDeleted )
         , ( "job:failed", JobFailed )
         , ( "job:started", JobStarted )

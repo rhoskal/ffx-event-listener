@@ -5,6 +5,7 @@ module PubNub exposing
     , EventTopic(..)
     , SubscriptionCreds
     , auth
+    , domainToString
     , topicToString
     )
 
@@ -43,7 +44,8 @@ type EventDomain
 
 
 type EventTopic
-    = JobCompleted
+    = ActionTriggered
+    | JobCompleted
     | JobDeleted
     | JobFailed
     | JobStarted
@@ -111,9 +113,28 @@ subscriptionCredsDecoder =
 -- HELPERS
 
 
+domainToString : EventDomain -> String
+domainToString domain =
+    case domain of
+        FileDomain ->
+            "File"
+
+        JobDomain ->
+            "Job"
+
+        SpaceDomain ->
+            "Space"
+
+        WorkbookDomain ->
+            "Workspace"
+
+
 topicToString : EventTopic -> String
 topicToString topic =
     case topic of
+        ActionTriggered ->
+            "action:triggered"
+
         JobCompleted ->
             "job:completed"
 

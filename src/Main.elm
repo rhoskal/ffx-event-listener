@@ -635,28 +635,24 @@ viewEventsTable model =
                         |> Icon.withSize 20
                         |> Icon.arrowRight
 
-        domainIcon : EventDomain -> Html msg
-        domainIcon domain =
+        domainBadge : EventDomain -> Html msg
+        domainBadge domain =
             case domain of
                 FileDomain ->
-                    Icon.defaults
-                        |> Icon.withSize 24
-                        |> Icon.domainFile
+                    span [ Attr.class "inline-flex items-center rounded-md bg-sky-200 px-2.5 py-0.5 text-sm font-medium text-sky-500" ]
+                        [ text (PubNub.domainToString domain) ]
 
                 JobDomain ->
-                    Icon.defaults
-                        |> Icon.withSize 24
-                        |> Icon.domainJob
+                    span [ Attr.class "inline-flex items-center rounded-md bg-purple-200 px-2.5 py-0.5 text-sm font-medium text-purple-500" ]
+                        [ text (PubNub.domainToString domain) ]
 
                 SpaceDomain ->
-                    Icon.defaults
-                        |> Icon.withSize 24
-                        |> Icon.domainSpace
+                    span [ Attr.class "inline-flex items-center rounded-md bg-green-200 px-2.5 py-0.5 text-sm font-medium text-green-500" ]
+                        [ text (PubNub.domainToString domain) ]
 
                 WorkbookDomain ->
-                    Icon.defaults
-                        |> Icon.withSize 24
-                        |> Icon.domainWorkbook
+                    span [ Attr.class "inline-flex items-center rounded-md bg-fuchsia-200 px-2.5 py-0.5 text-sm font-medium text-fuchsia-500" ]
+                        [ text (PubNub.domainToString domain) ]
 
         badge : String -> Html msg
         badge eventTopic =
@@ -698,6 +694,11 @@ viewEventsTable model =
                                         [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
                                         , Attr.scope "col"
                                         ]
+                                        []
+                                    , th
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
+                                        , Attr.scope "col"
+                                        ]
                                         [ text "Domain" ]
                                     , th
                                         [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
@@ -720,8 +721,9 @@ viewEventsTable model =
                                             ]
                                             [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                                 [ arrowIcon event.id
-                                                , domainIcon event.domain
                                                 ]
+                                            , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                                [ domainBadge event.domain ]
                                             , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                                 [ text <|
                                                     (event.createdAt
