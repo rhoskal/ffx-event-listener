@@ -14,7 +14,7 @@ import Test exposing (..)
 
 suite : Test
 suite =
-    describe "Environment"
+    describe "[Environment]"
         [ fuzz3 string string string "environmentDecoder maps required fields to an Environment" <|
             \id accountId name ->
                 [ ( "id", Encode.string id )

@@ -10,7 +10,7 @@ import Test exposing (..)
 
 suite : Test
 suite =
-    describe "Space"
+    describe "[Space]"
         [ fuzz2 string string "spaceDecoder maps required fields to a Space" <|
             \id environmentId ->
                 [ ( "id", Encode.string id )

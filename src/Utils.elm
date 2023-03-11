@@ -2,7 +2,7 @@ module Utils exposing (mkTestAttribute, posixToString)
 
 import Html exposing (Attribute)
 import Html.Attributes as Attr
-import Time exposing (Posix)
+import Time
 
 
 mkTestAttribute : String -> Attribute msg
@@ -10,17 +10,17 @@ mkTestAttribute =
     Attr.attribute "data-testid" << String.toLower
 
 
-posixToString : Posix -> String
-posixToString time =
+posixToString : Time.Posix -> Time.Zone -> String
+posixToString time tz =
     let
         year : String
         year =
-            Time.toYear Time.utc time
+            Time.toYear tz time
                 |> String.fromInt
 
         month : String
         month =
-            case Time.toMonth Time.utc time of
+            case Time.toMonth tz time of
                 Time.Jan ->
                     "Jan"
 
@@ -59,7 +59,7 @@ posixToString time =
 
         day : String
         day =
-            Time.toDay Time.utc time
+            Time.toDay tz time
                 |> (\d ->
                         case d of
                             1 ->
@@ -77,7 +77,7 @@ posixToString time =
 
         hour : String
         hour =
-            Time.toHour Time.utc time
+            Time.toHour tz time
                 |> (\h ->
                         if h < 10 then
                             "0" ++ String.fromInt h
@@ -88,7 +88,7 @@ posixToString time =
 
         minutes : String
         minutes =
-            Time.toMinute Time.utc time
+            Time.toMinute tz time
                 |> (\m ->
                         if m < 10 then
                             "0" ++ String.fromInt m
@@ -99,7 +99,7 @@ posixToString time =
 
         seconds : String
         seconds =
-            Time.toSecond Time.utc time
+            Time.toSecond tz time
                 |> (\s ->
                         if s < 10 then
                             "0" ++ String.fromInt s
@@ -110,7 +110,7 @@ posixToString time =
 
         millis : String
         millis =
-            Time.toMillis Time.utc time
+            Time.toMillis tz time
                 |> String.fromInt
     in
     year
@@ -126,4 +126,3 @@ posixToString time =
         ++ seconds
         ++ "."
         ++ millis
-        ++ " (UTC)"

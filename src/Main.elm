@@ -15,6 +15,8 @@ import Json.Decode as Decode
 import PubNub exposing (Event, EventDomain(..), SubscriptionCreds)
 import RemoteData as RD exposing (RemoteData(..), WebData)
 import Space exposing (Space)
+import Task
+import Time
 import Utils exposing (mkTestAttribute, posixToString)
 
 
@@ -36,6 +38,7 @@ type alias Model =
     , events : List Event
     , subscriptionCreds : WebData SubscriptionCreds
     , expandedEventId : Maybe String
+    , timeZone : Time.Zone
     }
 
 
@@ -54,6 +57,7 @@ initialModel =
     , events = []
     , subscriptionCreds = NotAsked
     , expandedEventId = Nothing
+    , timeZone = Time.utc
     }
 
 
@@ -61,10 +65,10 @@ init : Decode.Value -> ( Model, Cmd Msg )
 init flags =
     case InteropPorts.decodeFlags flags of
         Err _ ->
-            ( initialModel, Cmd.none )
+            ( initialModel, Task.attempt TimeZone Time.here )
 
         Ok _ ->
-            ( initialModel, Cmd.none )
+            ( initialModel, Task.attempt TimeZone Time.here )
 
 
 
@@ -76,6 +80,7 @@ type Msg
     | OpenExternalLink String
     | ClickedEvent String
     | ReceivedDomainEvent (Result Decode.Error InteropDefinitions.ToElm)
+    | TimeZone (Result () Time.Zone)
       -- Form
     | EnteredClientId String
     | EnteredSecretKey String
@@ -128,6 +133,14 @@ update msg model =
                         |> InteropDefinitions.ReportIssue
                         |> InteropPorts.fromElm
                     )
+
+        TimeZone result ->
+            case result of
+                Ok tz ->
+                    ( { model | timeZone = tz }, Cmd.none )
+
+                Err () ->
+                    ( model, Cmd.none )
 
         EnteredClientId clientId ->
             ( { model | clientId = clientId }, Cmd.none )
@@ -217,7 +230,8 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    InteropPorts.toElm |> Sub.map ReceivedDomainEvent
+    InteropPorts.toElm
+        |> Sub.map ReceivedDomainEvent
 
 
 
@@ -301,8 +315,8 @@ viewAuthForm model =
         ]
 
 
-viewMeta : Environment -> Space -> Html Msg
-viewMeta selectedEnvironment selectedSpace =
+viewMeta : Environment -> Space -> Time.Zone -> Html Msg
+viewMeta selectedEnvironment selectedSpace timeZone =
     let
         spaceName : String
         spaceName =
@@ -314,12 +328,9 @@ viewMeta selectedEnvironment selectedSpace =
 
         createdAt : String
         createdAt =
-            case selectedSpace.createdAt of
-                Just time ->
-                    posixToString time
-
-                Nothing ->
-                    "[Date Unknown]"
+            selectedSpace.createdAt
+                |> Maybe.map (\posix -> posixToString posix timeZone)
+                |> Maybe.withDefault "[Date Unknown]"
 
         createdBy : String
         createdBy =
@@ -712,11 +723,16 @@ viewEventsTable model =
                                                 , domainIcon event.domain
                                                 ]
                                             , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                                [ text <| Maybe.withDefault "Unknown DateTime" (Maybe.map posixToString event.createdAt) ]
+                                                [ text <|
+                                                    (event.createdAt
+                                                        |> Maybe.map (\posix -> posixToString posix model.timeZone)
+                                                        |> Maybe.withDefault "Unknown DateTime"
+                                                    )
+                                                ]
                                             , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
                                                 [ badge (PubNub.topicToString event.topic)
                                                 , span [ Attr.class "ml-2" ]
-                                                    [ text "some helpful summary" ]
+                                                    [ text "" ]
                                                 ]
                                             ]
                                     )
@@ -766,7 +782,7 @@ view model =
                     case model.selectedSpace of
                         Just space ->
                             section [ mkTestAttribute "section-events", Attr.class "" ]
-                                [ viewMeta env space
+                                [ viewMeta env space model.timeZone
                                 , viewEventsTable model
                                 ]
 
