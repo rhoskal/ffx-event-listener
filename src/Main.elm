@@ -639,24 +639,24 @@ viewEventsTable model =
         domainBadge domain =
             case domain of
                 FileDomain ->
-                    span [ Attr.class "inline-flex items-center rounded-md bg-sky-200 px-2.5 py-0.5 text-sm font-medium text-sky-500" ]
+                    span [ Attr.class "inline-flex items-center rounded-md bg-sky-200 px-2.5 py-0.5 text-sm font-medium text-sky-500 select-none" ]
                         [ text (PubNub.domainToString domain) ]
 
                 JobDomain ->
-                    span [ Attr.class "inline-flex items-center rounded-md bg-purple-200 px-2.5 py-0.5 text-sm font-medium text-purple-500" ]
+                    span [ Attr.class "inline-flex items-center rounded-md bg-purple-200 px-2.5 py-0.5 text-sm font-medium text-purple-500 select-none" ]
                         [ text (PubNub.domainToString domain) ]
 
                 SpaceDomain ->
-                    span [ Attr.class "inline-flex items-center rounded-md bg-green-200 px-2.5 py-0.5 text-sm font-medium text-green-500" ]
+                    span [ Attr.class "inline-flex items-center rounded-md bg-green-200 px-2.5 py-0.5 text-sm font-medium text-green-500 select-none" ]
                         [ text (PubNub.domainToString domain) ]
 
                 WorkbookDomain ->
-                    span [ Attr.class "inline-flex items-center rounded-md bg-fuchsia-200 px-2.5 py-0.5 text-sm font-medium text-fuchsia-500" ]
+                    span [ Attr.class "inline-flex items-center rounded-md bg-fuchsia-200 px-2.5 py-0.5 text-sm font-medium text-fuchsia-500 select-none" ]
                         [ text (PubNub.domainToString domain) ]
 
         badge : String -> Html msg
         badge eventTopic =
-            span [ Attr.class "inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-800" ]
+            span [ Attr.class "inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-800 select-none" ]
                 [ text eventTopic ]
     in
     if List.length model.events == 0 then
@@ -722,14 +722,15 @@ viewEventsTable model =
                                 (List.map
                                     (\event ->
                                         tr
-                                            [ Attr.class "grid grid-cols-5 flex items-center cursor-pointer"
+                                            [ Attr.class "grid grid-cols-5 flex items-center"
                                             , Attr.classList
                                                 [ ( "bg-cyan-50", Maybe.withDefault "non_existent_id" model.expandedEventId == event.id )
                                                 ]
-                                            , Events.onClick (ClickedEvent event.id)
                                             ]
                                             [ td
-                                                [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
+                                                [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500 cursor-pointer"
+                                                , Events.onClick (ClickedEvent event.id)
+                                                ]
                                                 [ arrowIcon event.id
                                                 ]
                                             , td
@@ -762,21 +763,21 @@ viewEventsTable model =
                                                       )
                                                     ]
                                                 ]
-                                                [ div [ Attr.class "mb-1.5 text-gray-500" ]
+                                                [ div [ Attr.class "mb-1.5 text-gray-500 select-none" ]
                                                     [ span [] [ text "Context" ]
                                                     ]
                                                 , div [ Attr.class "grid grid-cols-2 gap-x-4 gap-y-1 w-60" ]
-                                                    [ span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                    [ span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
                                                         [ text "@environment_id:" ]
                                                     , span [ Attr.class "text-sm text-gray-500 cursor-text" ]
                                                         [ text <| Environment.unwrap event.context.environmentId ]
-                                                    , span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                    , span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
                                                         [ text "@account_id:" ]
                                                     , span [ Attr.class "text-sm text-gray-500 cursor-text" ]
                                                         [ text event.context.accountId ]
                                                     , Html.Extra.viewMaybe
                                                         (\_ ->
-                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
                                                                 [ text "@action_name:" ]
                                                         )
                                                         event.context.actionName
@@ -788,7 +789,7 @@ viewEventsTable model =
                                                         event.context.actionName
                                                     , Html.Extra.viewMaybe
                                                         (\_ ->
-                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
                                                                 [ text "@space_id:" ]
                                                         )
                                                         event.context.spaceId
@@ -800,7 +801,7 @@ viewEventsTable model =
                                                         event.context.spaceId
                                                     , Html.Extra.viewMaybe
                                                         (\_ ->
-                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
                                                                 [ text "@workbook_id:" ]
                                                         )
                                                         event.context.workbookId
@@ -812,7 +813,7 @@ viewEventsTable model =
                                                         event.context.workbookId
                                                     , Html.Extra.viewMaybe
                                                         (\_ ->
-                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
                                                                 [ text "@sheet_id:" ]
                                                         )
                                                         event.context.sheetId
@@ -824,7 +825,7 @@ viewEventsTable model =
                                                         event.context.sheetId
                                                     , Html.Extra.viewMaybe
                                                         (\_ ->
-                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
                                                                 [ text "@job_id:" ]
                                                         )
                                                         event.context.jobId
@@ -836,7 +837,7 @@ viewEventsTable model =
                                                         event.context.jobId
                                                     , Html.Extra.viewMaybe
                                                         (\_ ->
-                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
                                                                 [ text "@file_id:" ]
                                                         )
                                                         event.context.fileId
@@ -848,7 +849,7 @@ viewEventsTable model =
                                                         event.context.fileId
                                                     , Html.Extra.viewMaybe
                                                         (\_ ->
-                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
                                                                 [ text "@proceeding_event_id:" ]
                                                         )
                                                         event.context.proceedingEventId
