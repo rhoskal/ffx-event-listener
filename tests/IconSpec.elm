@@ -9,7 +9,7 @@ import Test.Html.Selector as Selector
 
 suite : Test
 suite =
-    describe "icon builder functions"
+    describe "[Icon]"
         [ test "defaults" <|
             \() ->
                 Icon.defaults

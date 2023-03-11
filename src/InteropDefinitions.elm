@@ -6,14 +6,16 @@ module InteropDefinitions exposing
     )
 
 import Environment exposing (EnvironmentId(..))
+import Iso8601
 import PubNub
     exposing
-        ( Context
-        , Domain(..)
-        , DomainEvent
-        , Topic(..)
+        ( Event
+        , EventContext
+        , EventDomain(..)
+        , EventTopic(..)
         )
 import Space exposing (SpaceId(..))
+import Time exposing (Posix)
 import TsJson.Decode as TsDecode exposing (Decoder)
 import TsJson.Decode.Pipeline exposing (optional, required)
 import TsJson.Encode as TsEncode exposing (Encoder)
@@ -43,7 +45,7 @@ type FromElm
 
 
 type ToElm
-    = PNDomainEvent DomainEvent
+    = PNDomainEvent Event
 
 
 type alias Flags =
@@ -96,31 +98,32 @@ toElm =
     TsDecode.map PNDomainEvent domainEventDecoder
 
 
-domainEventDecoder : Decoder DomainEvent
+domainEventDecoder : Decoder Event
 domainEventDecoder =
-    TsDecode.succeed DomainEvent
+    TsDecode.succeed Event
         |> required "id" TsDecode.string
         |> required "domain" domainDecoder
         |> required "topic" topicDecoder
         |> required "context" contextDecoder
         |> required "payload" TsDecode.value
-        |> optional "createdAt" (TsDecode.maybe TsDecode.string) Nothing
+        |> optional "createdAt" (TsDecode.maybe posixFromIso8601Decoder) Nothing
 
 
-domainDecoder : Decoder Domain
+domainDecoder : Decoder EventDomain
 domainDecoder =
     TsDecode.stringUnion
-        [ ( "file", File )
-        , ( "job", Job )
-        , ( "space", Space )
-        , ( "workbook", Workbook )
+        [ ( "file", FileDomain )
+        , ( "job", JobDomain )
+        , ( "space", SpaceDomain )
+        , ( "workbook", WorkbookDomain )
         ]
 
 
-topicDecoder : Decoder Topic
+topicDecoder : Decoder EventTopic
 topicDecoder =
     TsDecode.stringUnion
-        [ ( "job:completed", JobCompleted )
+        [ ( "action:triggered", ActionTriggered )
+        , ( "job:completed", JobCompleted )
         , ( "job:deleted", JobDeleted )
         , ( "job:failed", JobFailed )
         , ( "job:started", JobStarted )
@@ -144,9 +147,9 @@ topicDecoder =
         ]
 
 
-contextDecoder : Decoder Context
+contextDecoder : Decoder EventContext
 contextDecoder =
-    TsDecode.succeed Context
+    TsDecode.succeed EventContext
         |> optional "actionName" (TsDecode.maybe TsDecode.string) Nothing
         |> required "accountId" TsDecode.string
         |> required "environmentId" environmentIdDecoder
@@ -168,6 +171,17 @@ environmentIdDecoder =
 spaceIdDecoder : Decoder SpaceId
 spaceIdDecoder =
     TsDecode.map SpaceId TsDecode.string
+
+
+posixFromIso8601Decoder : Decoder Posix
+posixFromIso8601Decoder =
+    let
+        decoder : Decoder (String -> Posix)
+        decoder =
+            TsDecode.succeed <|
+                (Iso8601.toTime >> Result.withDefault (Time.millisToPosix 0))
+    in
+    TsDecode.andMap TsDecode.string decoder
 
 
 flags : Decoder Flags

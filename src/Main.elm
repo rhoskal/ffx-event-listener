@@ -12,10 +12,12 @@ import Icon
 import InteropDefinitions
 import InteropPorts
 import Json.Decode as Decode
-import PubNub exposing (DomainEvent, SubscriptionCreds)
+import PubNub exposing (Event, EventDomain(..), SubscriptionCreds)
 import RemoteData as RD exposing (RemoteData(..), WebData)
 import Space exposing (Space)
-import Utils exposing (mkTestAttribute)
+import Task
+import Time
+import Utils exposing (mkTestAttribute, posixToString)
 
 
 
@@ -33,9 +35,10 @@ type alias Model =
     , showSpaceChoices : Bool
     , selectedSpace : Maybe Space
     , spaces : WebData (List Space)
-    , events : List DomainEvent
+    , events : List Event
     , subscriptionCreds : WebData SubscriptionCreds
     , expandedEventId : Maybe String
+    , timeZone : Time.Zone
     }
 
 
@@ -54,6 +57,7 @@ initialModel =
     , events = []
     , subscriptionCreds = NotAsked
     , expandedEventId = Nothing
+    , timeZone = Time.utc
     }
 
 
@@ -61,10 +65,10 @@ init : Decode.Value -> ( Model, Cmd Msg )
 init flags =
     case InteropPorts.decodeFlags flags of
         Err _ ->
-            ( initialModel, Cmd.none )
+            ( initialModel, Task.attempt TimeZone Time.here )
 
         Ok _ ->
-            ( initialModel, Cmd.none )
+            ( initialModel, Task.attempt TimeZone Time.here )
 
 
 
@@ -76,6 +80,7 @@ type Msg
     | OpenExternalLink String
     | ClickedEvent String
     | ReceivedDomainEvent (Result Decode.Error InteropDefinitions.ToElm)
+    | TimeZone (Result () Time.Zone)
       -- Form
     | EnteredClientId String
     | EnteredSecretKey String
@@ -128,6 +133,14 @@ update msg model =
                         |> InteropDefinitions.ReportIssue
                         |> InteropPorts.fromElm
                     )
+
+        TimeZone result ->
+            case result of
+                Ok tz ->
+                    ( { model | timeZone = tz }, Cmd.none )
+
+                Err () ->
+                    ( model, Cmd.none )
 
         EnteredClientId clientId ->
             ( { model | clientId = clientId }, Cmd.none )
@@ -217,7 +230,8 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    InteropPorts.toElm |> Sub.map ReceivedDomainEvent
+    InteropPorts.toElm
+        |> Sub.map ReceivedDomainEvent
 
 
 
@@ -301,8 +315,8 @@ viewAuthForm model =
         ]
 
 
-viewMeta : Environment -> Space -> Html Msg
-viewMeta selectedEnvironment selectedSpace =
+viewMeta : Environment -> Space -> Time.Zone -> Html Msg
+viewMeta selectedEnvironment selectedSpace timeZone =
     let
         spaceName : String
         spaceName =
@@ -314,7 +328,9 @@ viewMeta selectedEnvironment selectedSpace =
 
         createdAt : String
         createdAt =
-            Maybe.withDefault "[Date Unknown]" (Just "10 Jan 2023")
+            selectedSpace.createdAt
+                |> Maybe.map (\posix -> posixToString posix timeZone)
+                |> Maybe.withDefault "[Date Unknown]"
 
         createdBy : String
         createdBy =
@@ -619,35 +635,28 @@ viewEventsTable model =
                         |> Icon.withSize 20
                         |> Icon.arrowRight
 
-        domainIcon : String -> Html msg
-        domainIcon domain =
+        domainBadge : EventDomain -> Html msg
+        domainBadge domain =
             case domain of
-                "workbook" ->
-                    Icon.defaults
-                        |> Icon.withSize 24
-                        |> Icon.domainWorkbook
+                FileDomain ->
+                    span [ Attr.class "inline-flex items-center rounded-md bg-sky-200 px-2.5 py-0.5 text-sm font-medium text-sky-500 select-none" ]
+                        [ text (PubNub.domainToString domain) ]
 
-                "file" ->
-                    Icon.defaults
-                        |> Icon.withSize 24
-                        |> Icon.domainFile
+                JobDomain ->
+                    span [ Attr.class "inline-flex items-center rounded-md bg-purple-200 px-2.5 py-0.5 text-sm font-medium text-purple-500 select-none" ]
+                        [ text (PubNub.domainToString domain) ]
 
-                "job" ->
-                    Icon.defaults
-                        |> Icon.withSize 24
-                        |> Icon.domainJob
+                SpaceDomain ->
+                    span [ Attr.class "inline-flex items-center rounded-md bg-green-200 px-2.5 py-0.5 text-sm font-medium text-green-500 select-none" ]
+                        [ text (PubNub.domainToString domain) ]
 
-                "space" ->
-                    Icon.defaults
-                        |> Icon.withSize 24
-                        |> Icon.domainSpace
-
-                _ ->
-                    span [] []
+                WorkbookDomain ->
+                    span [ Attr.class "inline-flex items-center rounded-md bg-fuchsia-200 px-2.5 py-0.5 text-sm font-medium text-fuchsia-500 select-none" ]
+                        [ text (PubNub.domainToString domain) ]
 
         badge : String -> Html msg
         badge eventTopic =
-            span [ Attr.class "inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-800" ]
+            span [ Attr.class "inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-800 select-none" ]
                 [ text eventTopic ]
     in
     if List.length model.events == 0 then
@@ -671,227 +680,191 @@ viewEventsTable model =
                         [ text "Flatfile's platform was built using the event-driven architecture... Events are streamed in real-time" ]
                     ]
                 , div [ Attr.class "mt-4 sm:mt-0 sm:ml-16 sm:flex-none" ]
-                    [ button [ Attr.class "block rounded-md bg-indigo-600 py-2 px-3 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" ]
+                    [ button [ Attr.class "block rounded-md bg-indigo-600 py-2 px-3 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 hidden" ]
                         [ text "Export" ]
                     ]
                 ]
-            , div [ Attr.class "mt-8 flow-root" ]
+            , div [ Attr.class "mt-8 flow-root ring-1 ring-gray-300 rounded-lg" ]
                 [ div [ Attr.class "-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8" ]
                     [ div [ Attr.class "inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8" ]
                         [ table [ Attr.class "min-w-full divide-y divide-gray-300" ]
-                            [ thead [ Attr.class "" ]
-                                [ tr [ Attr.class "" ]
+                            [ thead [ Attr.class "text-left text-sm font-semibold text-gray-900" ]
+                                [ tr [ Attr.class "grid grid-cols-5" ]
                                     [ th
-                                        [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2"
+                                        , Attr.scope "col"
+                                        ]
+                                        []
+                                    , th
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2"
                                         , Attr.scope "col"
                                         ]
                                         [ text "Domain" ]
                                     , th
-                                        [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2"
                                         , Attr.scope "col"
                                         ]
                                         [ text "Timestamp" ]
                                     , th
-                                        [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2"
                                         , Attr.scope "col"
                                         ]
                                         [ text "Summary" ]
+                                    , th
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2"
+                                        , Attr.scope "col"
+                                        ]
+                                        [ text "Unique Identifier" ]
+                                    , th [ Attr.class "hidden" ] []
                                     ]
                                 ]
                             , tbody [ Attr.class "divide-y divide-gray-200 bg-white" ]
-                                [ tr
-                                    [ Attr.class "cursor-pointer"
-                                    , Events.onClick (ClickedEvent "us_evt_1")
-                                    ]
-                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ arrowIcon "us_evt_1"
-                                        , domainIcon "workbook"
-                                        ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ text "2019-12-17 10:10:37.951 MST" ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ badge "records:created"
-                                        , span [ Attr.class "ml-2" ]
-                                            [ text "42 records" ]
-                                        ]
-                                    ]
-                                , tr
-                                    [ Attr.class "cursor-pointer"
-                                    , Events.onClick (ClickedEvent "us_evt_1")
-                                    ]
-                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ arrowIcon "us_evt_1"
-                                        , domainIcon "workbook"
-                                        ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ text "2019-12-17 10:10:37.951 MST" ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ badge "records:updated"
-                                        , span [ Attr.class "ml-2" ]
-                                            [ text "Some helpful summary text" ]
-                                        ]
-                                    ]
-                                , tr
-                                    [ Attr.class "cursor-pointer"
-                                    , Events.onClick (ClickedEvent "us_evt_1")
-                                    ]
-                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ arrowIcon "us_evt_1"
-                                        , domainIcon "workbook"
-                                        ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ text "2019-12-17 10:10:37.951 MST" ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ badge "records:deleted"
-                                        , span [ Attr.class "ml-2" ]
-                                            [ text "1 record" ]
-                                        ]
-                                    ]
-                                , tr
-                                    [ Attr.class "cursor-pointer"
-                                    , Events.onClick (ClickedEvent "us_evt_1")
-                                    ]
-                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ arrowIcon "us_evt_1"
-                                        , domainIcon "workbook"
-                                        ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ text "2019-12-17 10:10:37.951 MST" ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ badge "sheet:validated"
-                                        , span [ Attr.class "ml-2" ]
-                                            [ text "Some helpful summary text" ]
-                                        ]
-                                    ]
-                                , tr
-                                    [ Attr.class "cursor-pointer"
-                                    , Events.onClick (ClickedEvent "us_evt_2")
-                                    ]
-                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ arrowIcon "us_evt_2"
-                                        , domainIcon "file"
-                                        ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ text "2019-12-17 10:10:37.951 MST" ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ badge "upload:started"
-                                        , span [ Attr.class "ml-2" ]
-                                            [ text "Some helpful summary text" ]
-                                        ]
-                                    ]
-                                , tr
-                                    [ Attr.class "cursor-pointer"
-                                    , Events.onClick (ClickedEvent "us_evt_2")
-                                    ]
-                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ arrowIcon "us_evt_2"
-                                        , domainIcon "file"
-                                        ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ text "2019-12-17 10:10:37.951 MST" ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ badge "upload:completed"
-                                        , span [ Attr.class "ml-2" ]
-                                            [ text "Some helpful summary text" ]
-                                        ]
-                                    ]
-                                , tr
-                                    [ Attr.class "cursor-pointer"
-                                    , Events.onClick (ClickedEvent "us_evt_3")
-                                    ]
-                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ arrowIcon "us_evt_3"
-                                        , domainIcon "job"
-                                        ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ text "2019-12-17 10:10:37.951 MST" ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ badge "job:waiting"
-                                        , span [ Attr.class "ml-2" ]
-                                            [ text "Some helpful summary text" ]
-                                        ]
-                                    ]
-                                , tr
-                                    [ Attr.class "cursor-pointer"
-                                    , Events.onClick (ClickedEvent "us_evt_3")
-                                    ]
-                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ arrowIcon "us_evt_3"
-                                        , domainIcon "job"
-                                        ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ text "2019-12-17 10:10:37.951 MST" ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ badge "job:started"
-                                        , span [ Attr.class "ml-2" ]
-                                            [ text "File extraction" ]
-                                        ]
-                                    ]
-                                , tr
-                                    [ Attr.class "cursor-pointer"
-                                    , Events.onClick (ClickedEvent "us_evt_3")
-                                    ]
-                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ arrowIcon "us_evt_3"
-                                        , domainIcon "job"
-                                        ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ text "2019-12-17 10:10:37.951 MST" ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ badge "job:updated"
-                                        , span [ Attr.class "ml-2" ]
-                                            [ text "File extraction" ]
-                                        ]
-                                    ]
-                                , tr
-                                    [ Attr.class "cursor-pointer"
-                                    , Events.onClick (ClickedEvent "us_evt_3")
-                                    ]
-                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ arrowIcon "us_evt_3"
-                                        , domainIcon "job"
-                                        ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ text "2019-12-17 10:10:37.951 MST" ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ badge "job:failed"
-                                        , span [ Attr.class "ml-2" ]
-                                            [ text "File extraction" ]
-                                        ]
-                                    ]
-                                , tr
-                                    [ Attr.class "cursor-pointer"
-                                    , Events.onClick (ClickedEvent "us_evt_3")
-                                    ]
-                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ arrowIcon "us_evt_3"
-                                        , domainIcon "job"
-                                        ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ text "2019-12-17 10:10:37.951 MST" ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ badge "job:completed"
-                                        , span [ Attr.class "ml-2" ]
-                                            [ text "Some helpful summary text" ]
-                                        ]
-                                    ]
-                                , tr
-                                    [ Attr.class "cursor-pointer"
-                                    , Events.onClick (ClickedEvent "us_evt_4")
-                                    ]
-                                    [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ arrowIcon "us_evt_4"
-                                        , domainIcon "space"
-                                        ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ text "2019-12-17 10:10:37.951 MST" ]
-                                    , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
-                                        [ badge "space:created"
-                                        , span [ Attr.class "ml-2" ]
-                                            [ text "Some helpful summary text" ]
-                                        ]
-                                    ]
-                                ]
+                                (List.map
+                                    (\event ->
+                                        tr
+                                            [ Attr.class "grid grid-cols-5 flex items-center"
+                                            , Attr.classList
+                                                [ ( "bg-cyan-50", Maybe.withDefault "non_existent_id" model.expandedEventId == event.id )
+                                                ]
+                                            ]
+                                            [ td
+                                                [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500 cursor-pointer"
+                                                , Events.onClick (ClickedEvent event.id)
+                                                ]
+                                                [ arrowIcon event.id
+                                                ]
+                                            , td
+                                                [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
+                                                [ domainBadge event.domain ]
+                                            , td
+                                                [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
+                                                [ text <|
+                                                    (event.createdAt
+                                                        |> Maybe.map (\posix -> posixToString posix model.timeZone)
+                                                        |> Maybe.withDefault "Unknown DateTime"
+                                                    )
+                                                ]
+                                            , td
+                                                [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
+                                                [ badge (PubNub.topicToString event.topic)
+                                                , span [ Attr.class "ml-2" ]
+                                                    [ text "" ]
+                                                ]
+                                            , td
+                                                [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
+                                                [ span [ Attr.class "" ]
+                                                    [ text event.id ]
+                                                ]
+                                            , td
+                                                [ Attr.class "col-span-full px-10 py-2 border-t cursor-default bg-white"
+                                                , Attr.classList
+                                                    [ ( "hidden"
+                                                      , Maybe.withDefault "non_existent_id" model.expandedEventId /= event.id
+                                                      )
+                                                    ]
+                                                ]
+                                                [ div [ Attr.class "mb-1.5 text-gray-500 select-none" ]
+                                                    [ span [] [ text "Context" ]
+                                                    ]
+                                                , div [ Attr.class "grid grid-cols-2 gap-x-4 gap-y-1 w-60" ]
+                                                    [ span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
+                                                        [ text "@environment_id:" ]
+                                                    , span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                        [ text <| Environment.unwrap event.context.environmentId ]
+                                                    , span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
+                                                        [ text "@account_id:" ]
+                                                    , span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                        [ text event.context.accountId ]
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
+                                                                [ text "@action_name:" ]
+                                                        )
+                                                        event.context.actionName
+                                                    , Html.Extra.viewMaybe
+                                                        (\actionName ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text actionName ]
+                                                        )
+                                                        event.context.actionName
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
+                                                                [ text "@space_id:" ]
+                                                        )
+                                                        event.context.spaceId
+                                                    , Html.Extra.viewMaybe
+                                                        (\spaceId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text <| Space.unwrap spaceId ]
+                                                        )
+                                                        event.context.spaceId
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
+                                                                [ text "@workbook_id:" ]
+                                                        )
+                                                        event.context.workbookId
+                                                    , Html.Extra.viewMaybe
+                                                        (\workbookId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text workbookId ]
+                                                        )
+                                                        event.context.workbookId
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
+                                                                [ text "@sheet_id:" ]
+                                                        )
+                                                        event.context.sheetId
+                                                    , Html.Extra.viewMaybe
+                                                        (\sheetId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text sheetId ]
+                                                        )
+                                                        event.context.sheetId
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
+                                                                [ text "@job_id:" ]
+                                                        )
+                                                        event.context.jobId
+                                                    , Html.Extra.viewMaybe
+                                                        (\jobId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text jobId ]
+                                                        )
+                                                        event.context.jobId
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
+                                                                [ text "@file_id:" ]
+                                                        )
+                                                        event.context.fileId
+                                                    , Html.Extra.viewMaybe
+                                                        (\fileId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text fileId ]
+                                                        )
+                                                        event.context.fileId
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
+                                                                [ text "@proceeding_event_id:" ]
+                                                        )
+                                                        event.context.proceedingEventId
+                                                    , Html.Extra.viewMaybe
+                                                        (\eventId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text eventId ]
+                                                        )
+                                                        event.context.proceedingEventId
+                                                    ]
+                                                ]
+                                            ]
+                                    )
+                                    model.events
+                                )
                             ]
                         ]
                     ]
@@ -936,7 +909,7 @@ view model =
                     case model.selectedSpace of
                         Just space ->
                             section [ mkTestAttribute "section-events", Attr.class "" ]
-                                [ viewMeta env space
+                                [ viewMeta env space model.timeZone
                                 , viewEventsTable model
                                 ]
 

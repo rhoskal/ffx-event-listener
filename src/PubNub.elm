@@ -1,14 +1,13 @@
 module PubNub exposing
-    ( Context
-    , Domain(..)
-    , DomainEvent
+    ( Event
+    , EventContext
+    , EventDomain(..)
+    , EventTopic(..)
     , SubscriptionCreds
-    , Topic(..)
     , auth
+    , domainToString
+    , topicToString
     )
-
--- import Iso8601
--- import Time
 
 import Api exposing (Cred)
 import Api.Endpoint as Endpoint
@@ -17,6 +16,7 @@ import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (WebData)
 import Space exposing (SpaceId)
+import Time
 
 
 type alias SubscriptionCreds =
@@ -26,27 +26,26 @@ type alias SubscriptionCreds =
     }
 
 
-type alias DomainEvent =
+type alias Event =
     { id : String
-    , domain : Domain
-    , topic : Topic
-    , context : Context
+    , domain : EventDomain
+    , topic : EventTopic
+    , context : EventContext
     , payload : Decode.Value
-
-    -- , createdAt : Maybe Time.Posix
-    , createdAt : Maybe String
+    , createdAt : Maybe Time.Posix
     }
 
 
-type Domain
-    = File
-    | Job
-    | Space
-    | Workbook
+type EventDomain
+    = FileDomain
+    | JobDomain
+    | SpaceDomain
+    | WorkbookDomain
 
 
-type Topic
-    = JobCompleted
+type EventTopic
+    = ActionTriggered
+    | JobCompleted
     | JobDeleted
     | JobFailed
     | JobStarted
@@ -69,7 +68,7 @@ type Topic
     | WorkbookRemoved
 
 
-type alias Context =
+type alias EventContext =
     { actionName : Maybe String
     , accountId : String
     , environmentId : EnvironmentId
@@ -108,3 +107,93 @@ subscriptionCredsDecoder =
                 |> required "token" Decode.string
     in
     Decode.at [ "data" ] decoder
+
+
+
+-- HELPERS
+
+
+domainToString : EventDomain -> String
+domainToString domain =
+    case domain of
+        FileDomain ->
+            "File"
+
+        JobDomain ->
+            "Job"
+
+        SpaceDomain ->
+            "Space"
+
+        WorkbookDomain ->
+            "Workspace"
+
+
+topicToString : EventTopic -> String
+topicToString topic =
+    case topic of
+        ActionTriggered ->
+            "action:triggered"
+
+        JobCompleted ->
+            "job:completed"
+
+        JobDeleted ->
+            "job:deleted"
+
+        JobFailed ->
+            "job:failed"
+
+        JobStarted ->
+            "job:started"
+
+        JobUpdated ->
+            "job:updated"
+
+        JobWaiting ->
+            "job:waiting"
+
+        RecordsCreated ->
+            "records:created"
+
+        RecordsDeleted ->
+            "records:deleted"
+
+        RecordsUpdated ->
+            "records:updated"
+
+        SheetValidated ->
+            "sheet:validated"
+
+        SpaceAdded ->
+            "space:added"
+
+        SpaceRemoved ->
+            "space:removed"
+
+        UploadCompleted ->
+            "upload:completed"
+
+        UploadFailed ->
+            "upload:failed"
+
+        UploadStarted ->
+            "upload:started"
+
+        UserAdded ->
+            "user:added"
+
+        UserOffline ->
+            "user:offline"
+
+        UserOnline ->
+            "user:online"
+
+        UserRemoved ->
+            "user:removed"
+
+        WorkbookAdded ->
+            "workbook:added"
+
+        WorkbookRemoved ->
+            "workbook:removed"
