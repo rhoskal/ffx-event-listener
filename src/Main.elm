@@ -689,7 +689,7 @@ viewEventsTable model =
                     [ div [ Attr.class "inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8" ]
                         [ table [ Attr.class "min-w-full divide-y divide-gray-300" ]
                             [ thead [ Attr.class "text-left text-sm font-semibold text-gray-900" ]
-                                [ tr [ Attr.class "grid grid-cols-4" ]
+                                [ tr [ Attr.class "grid grid-cols-5" ]
                                     [ th
                                         [ Attr.class "whitespace-nowrap py-3.5 px-2"
                                         , Attr.scope "col"
@@ -710,6 +710,11 @@ viewEventsTable model =
                                         , Attr.scope "col"
                                         ]
                                         [ text "Summary" ]
+                                    , th
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2"
+                                        , Attr.scope "col"
+                                        ]
+                                        [ text "Unique Identifier" ]
                                     , th [ Attr.class "hidden" ] []
                                     ]
                                 ]
@@ -717,7 +722,7 @@ viewEventsTable model =
                                 (List.map
                                     (\event ->
                                         tr
-                                            [ Attr.class "grid grid-cols-4 flex items-center cursor-pointer"
+                                            [ Attr.class "grid grid-cols-5 flex items-center cursor-pointer"
                                             , Attr.classList
                                                 [ ( "bg-cyan-50", Maybe.withDefault "non_existent_id" model.expandedEventId == event.id )
                                                 ]
@@ -745,6 +750,11 @@ viewEventsTable model =
                                                     [ text "" ]
                                                 ]
                                             , td
+                                                [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
+                                                [ span [ Attr.class "" ]
+                                                    [ text event.id ]
+                                                ]
+                                            , td
                                                 [ Attr.class "col-span-full px-10 py-2 border-t cursor-default bg-white"
                                                 , Attr.classList
                                                     [ ( "hidden"
@@ -752,12 +762,11 @@ viewEventsTable model =
                                                       )
                                                     ]
                                                 ]
-                                                [ div [ Attr.class "grid grid-cols-2 gap-x-4 gap-y-1 w-60" ]
+                                                [ div [ Attr.class "mb-1.5 text-gray-500" ]
+                                                    [ span [] [ text "Context" ]
+                                                    ]
+                                                , div [ Attr.class "grid grid-cols-2 gap-x-4 gap-y-1 w-60" ]
                                                     [ span [ Attr.class "text-sm font-semibold text-gray-800" ]
-                                                        [ text "@event_id:" ]
-                                                    , span [ Attr.class "text-sm text-gray-500 cursor-text" ]
-                                                        [ text <| event.id ]
-                                                    , span [ Attr.class "text-sm font-semibold text-gray-800" ]
                                                         [ text "@environment_id:" ]
                                                     , span [ Attr.class "text-sm text-gray-500 cursor-text" ]
                                                         [ text <| Environment.unwrap event.context.environmentId ]
