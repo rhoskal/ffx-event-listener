@@ -680,7 +680,7 @@ viewEventsTable model =
                         [ text "Flatfile's platform was built using the event-driven architecture... Events are streamed in real-time" ]
                     ]
                 , div [ Attr.class "mt-4 sm:mt-0 sm:ml-16 sm:flex-none" ]
-                    [ button [ Attr.class "block rounded-md bg-indigo-600 py-2 px-3 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600" ]
+                    [ button [ Attr.class "block rounded-md bg-indigo-600 py-2 px-3 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 hidden" ]
                         [ text "Export" ]
                     ]
                 ]
@@ -688,53 +688,168 @@ viewEventsTable model =
                 [ div [ Attr.class "-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8" ]
                     [ div [ Attr.class "inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8" ]
                         [ table [ Attr.class "min-w-full divide-y divide-gray-300" ]
-                            [ thead [ Attr.class "" ]
-                                [ tr [ Attr.class "" ]
+                            [ thead [ Attr.class "text-left text-sm font-semibold text-gray-900" ]
+                                [ tr [ Attr.class "grid grid-cols-4" ]
                                     [ th
-                                        [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2"
                                         , Attr.scope "col"
                                         ]
                                         []
                                     , th
-                                        [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2"
                                         , Attr.scope "col"
                                         ]
                                         [ text "Domain" ]
                                     , th
-                                        [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2"
                                         , Attr.scope "col"
                                         ]
                                         [ text "Timestamp" ]
                                     , th
-                                        [ Attr.class "whitespace-nowrap py-3.5 px-2 text-left text-sm font-semibold text-gray-900"
+                                        [ Attr.class "whitespace-nowrap py-3.5 px-2"
                                         , Attr.scope "col"
                                         ]
                                         [ text "Summary" ]
+                                    , th [ Attr.class "hidden" ] []
                                     ]
                                 ]
                             , tbody [ Attr.class "divide-y divide-gray-200 bg-white" ]
                                 (List.map
                                     (\event ->
                                         tr
-                                            [ Attr.class "cursor-pointer"
+                                            [ Attr.class "grid grid-cols-4 flex items-center cursor-pointer"
+                                            , Attr.classList
+                                                [ ( "bg-cyan-50", Maybe.withDefault "non_existent_id" model.expandedEventId == event.id )
+                                                ]
                                             , Events.onClick (ClickedEvent event.id)
                                             ]
-                                            [ td [ Attr.class "flex items-center space-x-2 whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                            [ td
+                                                [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
                                                 [ arrowIcon event.id
                                                 ]
-                                            , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                            , td
+                                                [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
                                                 [ domainBadge event.domain ]
-                                            , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                            , td
+                                                [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
                                                 [ text <|
                                                     (event.createdAt
                                                         |> Maybe.map (\posix -> posixToString posix model.timeZone)
                                                         |> Maybe.withDefault "Unknown DateTime"
                                                     )
                                                 ]
-                                            , td [ Attr.class "whitespace-nowrap py-2 px-2 text-sm text-gray-500" ]
+                                            , td
+                                                [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
                                                 [ badge (PubNub.topicToString event.topic)
                                                 , span [ Attr.class "ml-2" ]
                                                     [ text "" ]
+                                                ]
+                                            , td
+                                                [ Attr.class "col-span-full px-10 py-2 border-t cursor-default bg-white"
+                                                , Attr.classList
+                                                    [ ( "hidden"
+                                                      , Maybe.withDefault "non_existent_id" model.expandedEventId /= event.id
+                                                      )
+                                                    ]
+                                                ]
+                                                [ div [ Attr.class "grid grid-cols-2 gap-x-4 gap-y-1 w-60" ]
+                                                    [ span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                        [ text "@event_id:" ]
+                                                    , span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                        [ text <| event.id ]
+                                                    , span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                        [ text "@environment_id:" ]
+                                                    , span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                        [ text <| Environment.unwrap event.context.environmentId ]
+                                                    , span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                        [ text "@account_id:" ]
+                                                    , span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                        [ text event.context.accountId ]
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                                [ text "@action_name:" ]
+                                                        )
+                                                        event.context.actionName
+                                                    , Html.Extra.viewMaybe
+                                                        (\actionName ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text actionName ]
+                                                        )
+                                                        event.context.actionName
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                                [ text "@space_id:" ]
+                                                        )
+                                                        event.context.spaceId
+                                                    , Html.Extra.viewMaybe
+                                                        (\spaceId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text <| Space.unwrap spaceId ]
+                                                        )
+                                                        event.context.spaceId
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                                [ text "@workbook_id:" ]
+                                                        )
+                                                        event.context.workbookId
+                                                    , Html.Extra.viewMaybe
+                                                        (\workbookId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text workbookId ]
+                                                        )
+                                                        event.context.workbookId
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                                [ text "@sheet_id:" ]
+                                                        )
+                                                        event.context.sheetId
+                                                    , Html.Extra.viewMaybe
+                                                        (\sheetId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text sheetId ]
+                                                        )
+                                                        event.context.sheetId
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                                [ text "@job_id:" ]
+                                                        )
+                                                        event.context.jobId
+                                                    , Html.Extra.viewMaybe
+                                                        (\jobId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text jobId ]
+                                                        )
+                                                        event.context.jobId
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                                [ text "@file_id:" ]
+                                                        )
+                                                        event.context.fileId
+                                                    , Html.Extra.viewMaybe
+                                                        (\fileId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text fileId ]
+                                                        )
+                                                        event.context.fileId
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800" ]
+                                                                [ text "@proceeding_event_id:" ]
+                                                        )
+                                                        event.context.proceedingEventId
+                                                    , Html.Extra.viewMaybe
+                                                        (\eventId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text eventId ]
+                                                        )
+                                                        event.context.proceedingEventId
+                                                    ]
                                                 ]
                                             ]
                                     )

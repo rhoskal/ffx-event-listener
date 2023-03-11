@@ -10,17 +10,22 @@ mkTestAttribute =
     Attr.attribute "data-testid" << String.toLower
 
 
+posixToStringShort : Time.Posix -> String
+posixToStringShort posix =
+    ""
+
+
 posixToString : Time.Posix -> Time.Zone -> String
-posixToString time tz =
+posixToString posix tz =
     let
         year : String
         year =
-            Time.toYear tz time
+            Time.toYear tz posix
                 |> String.fromInt
 
         month : String
         month =
-            case Time.toMonth tz time of
+            case Time.toMonth tz posix of
                 Time.Jan ->
                     "Jan"
 
@@ -59,7 +64,7 @@ posixToString time tz =
 
         day : String
         day =
-            Time.toDay tz time
+            Time.toDay tz posix
                 |> (\d ->
                         case d of
                             1 ->
@@ -77,7 +82,7 @@ posixToString time tz =
 
         hour : String
         hour =
-            Time.toHour tz time
+            Time.toHour tz posix
                 |> (\h ->
                         if h < 10 then
                             "0" ++ String.fromInt h
@@ -88,7 +93,7 @@ posixToString time tz =
 
         minutes : String
         minutes =
-            Time.toMinute tz time
+            Time.toMinute tz posix
                 |> (\m ->
                         if m < 10 then
                             "0" ++ String.fromInt m
@@ -99,7 +104,7 @@ posixToString time tz =
 
         seconds : String
         seconds =
-            Time.toSecond tz time
+            Time.toSecond tz posix
                 |> (\s ->
                         if s < 10 then
                             "0" ++ String.fromInt s
@@ -110,14 +115,14 @@ posixToString time tz =
 
         millis : String
         millis =
-            Time.toMillis tz time
+            Time.toMillis tz posix
                 |> String.fromInt
     in
-    year
+    day
         ++ " "
         ++ month
         ++ " "
-        ++ day
+        ++ year
         ++ " "
         ++ hour
         ++ ":"

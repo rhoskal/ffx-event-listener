@@ -28,6 +28,6 @@ suite =
             [ test "posixToString" <|
                 \() ->
                     posixToString (Time.millisToPosix 0) Time.utc
-                        |> Expect.equal "1970 Jan 1st 00:00:00.0"
+                        |> Expect.equal "1st Jan 1970 00:00:00.0"
             ]
         ]
