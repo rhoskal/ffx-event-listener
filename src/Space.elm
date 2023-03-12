@@ -1,24 +1,18 @@
 module Space exposing
     ( Space
-    , SpaceId(..)
     , list
     , spaceDecoder
-    , spaceIdDecoder
-    , unwrap
     )
 
 import Api exposing (Cred)
 import Api.Endpoint as Endpoint
-import Environment exposing (EnvironmentId, environmentIdDecoder)
+import EnvironmentId exposing (EnvironmentId)
 import Iso8601
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
 import RemoteData exposing (WebData)
+import SpaceId exposing (SpaceId)
 import Time
-
-
-type SpaceId
-    = SpaceId String
 
 
 type alias Space =
@@ -32,11 +26,6 @@ type alias Space =
     }
 
 
-unwrap : SpaceId -> String
-unwrap (SpaceId id) =
-    id
-
-
 
 -- HTTP
 
@@ -46,7 +35,7 @@ list environmentId maybeCred toMsg =
     let
         envId : String
         envId =
-            Environment.unwrap environmentId
+            EnvironmentId.toString environmentId
     in
     Api.get (Endpoint.listSpaces envId) maybeCred toMsg spacesDecoder
 
@@ -63,15 +52,10 @@ spacesDecoder =
 spaceDecoder : Decoder Space
 spaceDecoder =
     Decode.succeed Space
-        |> required "id" spaceIdDecoder
+        |> required "id" SpaceId.decoder
         |> optional "workbooksCount" (Decode.maybe Decode.int) Nothing
         |> optional "filesCount" (Decode.maybe Decode.int) Nothing
         |> optional "createdByUserName" (Decode.maybe Decode.string) Nothing
         |> optional "createdAt" (Decode.maybe Iso8601.decoder) Nothing
-        |> required "environmentId" environmentIdDecoder
+        |> required "environmentId" EnvironmentId.decoder
         |> optional "name" (Decode.maybe Decode.string) Nothing
-
-
-spaceIdDecoder : Decoder SpaceId
-spaceIdDecoder =
-    Decode.map SpaceId Decode.string

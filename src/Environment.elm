@@ -1,21 +1,15 @@
 module Environment exposing
     ( Environment
-    , EnvironmentId(..)
     , environmentDecoder
-    , environmentIdDecoder
     , list
-    , unwrap
     )
 
 import Api exposing (Cred)
 import Api.Endpoint as Endpoint
+import EnvironmentId exposing (EnvironmentId)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (WebData)
-
-
-type EnvironmentId
-    = EnvironmentId String
 
 
 type alias Environment =
@@ -23,11 +17,6 @@ type alias Environment =
     , accountId : String
     , name : String
     }
-
-
-unwrap : EnvironmentId -> String
-unwrap (EnvironmentId id) =
-    id
 
 
 
@@ -51,11 +40,6 @@ environmentsDecoder =
 environmentDecoder : Decoder Environment
 environmentDecoder =
     Decode.succeed Environment
-        |> required "id" environmentIdDecoder
+        |> required "id" EnvironmentId.decoder
         |> required "accountId" Decode.string
         |> required "name" Decode.string
-
-
-environmentIdDecoder : Decoder EnvironmentId
-environmentIdDecoder =
-    Decode.map EnvironmentId Decode.string

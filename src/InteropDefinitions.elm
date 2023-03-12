@@ -5,7 +5,7 @@ module InteropDefinitions exposing
     , interop
     )
 
-import Environment exposing (EnvironmentId(..))
+import EnvironmentId exposing (EnvironmentId)
 import Iso8601
 import PubNub
     exposing
@@ -14,7 +14,7 @@ import PubNub
         , EventDomain(..)
         , EventTopic(..)
         )
-import Space exposing (SpaceId(..))
+import SpaceId exposing (SpaceId)
 import Time exposing (Posix)
 import TsJson.Decode as TsDecode exposing (Decoder)
 import TsJson.Decode.Pipeline exposing (optional, required)
@@ -81,7 +81,7 @@ fromElm =
         |> TsEncode.variantTagged "subscriptionCreds"
             (TsEncode.object
                 [ TsEncode.required "accountId" .accountId TsEncode.string
-                , TsEncode.required "spaceId" .spaceId (TsEncode.map Space.unwrap TsEncode.string)
+                , TsEncode.required "spaceId" .spaceId (TsEncode.map SpaceId.toString TsEncode.string)
                 , TsEncode.required "subscribeKey" .subscribeKey TsEncode.string
                 , TsEncode.required "token" .token TsEncode.string
                 ]
@@ -165,12 +165,12 @@ contextDecoder =
 
 environmentIdDecoder : Decoder EnvironmentId
 environmentIdDecoder =
-    TsDecode.map EnvironmentId TsDecode.string
+    TsDecode.map EnvironmentId.wrap TsDecode.string
 
 
 spaceIdDecoder : Decoder SpaceId
 spaceIdDecoder =
-    TsDecode.map SpaceId TsDecode.string
+    TsDecode.map SpaceId.wrap TsDecode.string
 
 
 posixFromIso8601Decoder : Decoder Posix
