@@ -35,23 +35,21 @@ export const prettyPrint = (
   title: string,
   messages: ReadonlyArray<string>,
 ) => {
+  console.group(`%c[crispy-critters] ${title} ⥤`, css);
+
   match(level)
     .with("info", () => {
-      console.group(`%c[crispy-critters] ${title} ⥤`, css);
-      messages.map(console.log);
-      console.groupEnd();
+      messages.forEach((msg) => console.log(msg));
     })
     .with("warn", () => {
-      console.group(`%c[crispy-critters] ${title} ⥤`, css);
-      messages.map(console.warn);
-      console.groupEnd();
+      messages.forEach((msg) => console.warn(msg));
     })
     .with("error", () => {
-      console.group(`%c[crispy-critters] ${title} ⥤`, css);
-      messages.map(console.error);
-      console.groupEnd();
+      messages.forEach((msg) => console.error(msg));
     })
     .exhaustive();
+
+  console.groupEnd();
 };
 
 const openExternalLink =
