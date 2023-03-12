@@ -45,8 +45,8 @@ type alias Model =
     }
 
 
-initialModel : Model
-initialModel =
+defaults : Model
+defaults =
     { clientId = ""
     , secretKey = ""
     , accessToken = NotAsked
@@ -68,10 +68,10 @@ init : Decode.Value -> ( Model, Cmd Msg )
 init flags =
     case InteropPorts.decodeFlags flags of
         Err _ ->
-            ( initialModel, Task.attempt TimeZone Time.here )
+            ( defaults, Task.attempt TimeZone Time.here )
 
         Ok _ ->
-            ( initialModel, Task.attempt TimeZone Time.here )
+            ( defaults, Task.attempt TimeZone Time.here )
 
 
 
@@ -104,7 +104,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Reset ->
-            ( initialModel, Cmd.none )
+            ( defaults, Cmd.none )
 
         OpenExternalLink externalLink ->
             ( model
@@ -197,7 +197,7 @@ update msg model =
                 secretKey =
                     model.secretKey
             in
-            ( model, Api.login clientId secretKey GotAuthResponse )
+            ( { model | accessToken = RD.Loading }, Api.login clientId secretKey GotAuthResponse )
 
         GotEnvironmentsResponse response ->
             ( { model | environments = response }, Cmd.none )
@@ -332,7 +332,7 @@ viewMeta selectedEnvironment selectedSpace timeZone =
         createdAt : String
         createdAt =
             selectedSpace.createdAt
-                |> Maybe.map (\posix -> posixToString posix timeZone)
+                |> Maybe.map (posixToString timeZone)
                 |> Maybe.withDefault "[Date Unknown]"
 
         createdBy : String
@@ -423,14 +423,14 @@ viewSelectEnvironment model =
                         ]
                         [ span [ Attr.class "inline-flex w-full truncate" ]
                             [ span [ Attr.class "truncate select-none" ]
-                                [ text <|
-                                    Maybe.withDefault "Select..." <|
-                                        Maybe.map (\env -> env.name) model.selectedEnvironment
+                                [ Maybe.map .name model.selectedEnvironment
+                                    |> Maybe.withDefault "Select..."
+                                    |> text
                                 ]
                             , span [ Attr.class "ml-2 truncate text-gray-500" ]
-                                [ text <|
-                                    Maybe.withDefault "" <|
-                                        Maybe.map (\env -> EnvironmentId.toString env.id) model.selectedEnvironment
+                                [ Maybe.map (.id >> EnvironmentId.toString) model.selectedEnvironment
+                                    |> Maybe.withDefault "[Unnamed]"
+                                    |> text
                                 ]
                             ]
                         , span [ Attr.class "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400" ]
@@ -534,15 +534,15 @@ viewSelectSpace model =
                         ]
                         [ span [ Attr.class "inline-flex w-full truncate" ]
                             [ span [ Attr.class "truncate select-none" ]
-                                [ text <|
-                                    Maybe.withDefault "Select..." <|
-                                        Maybe.andThen (\name -> name) <|
-                                            Maybe.map (\space -> space.name) model.selectedSpace
+                                [ Maybe.map .name model.selectedSpace
+                                    |> Maybe.andThen identity
+                                    |> Maybe.withDefault "Select..."
+                                    |> text
                                 ]
                             , span [ Attr.class "ml-2 truncate text-gray-500" ]
-                                [ text <|
-                                    Maybe.withDefault "" <|
-                                        Maybe.map (\space -> SpaceId.toString space.id) model.selectedSpace
+                                [ Maybe.map (.id >> SpaceId.toString) model.selectedSpace
+                                    |> Maybe.withDefault "[Unnamed]"
+                                    |> text
                                 ]
                             ]
                         , span [ Attr.class "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400" ]
@@ -657,8 +657,8 @@ viewEventsTable model =
                     span [ Attr.class "inline-flex items-center rounded-md bg-fuchsia-200 px-2.5 py-0.5 text-sm font-medium text-fuchsia-500 select-none" ]
                         [ text (PubNub.domainToString domain) ]
 
-        badge : String -> Html msg
-        badge eventTopic =
+        topicBadge : String -> Html msg
+        topicBadge eventTopic =
             span [ Attr.class "inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-800 select-none" ]
                 [ text eventTopic ]
     in
@@ -734,25 +734,20 @@ viewEventsTable model =
                                                 [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500 cursor-pointer"
                                                 , Events.onClick (ClickedEvent event.id)
                                                 ]
-                                                [ arrowIcon event.id
-                                                ]
+                                                [ arrowIcon event.id ]
                                             , td
                                                 [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
                                                 [ domainBadge event.domain ]
                                             , td
                                                 [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
-                                                [ text <|
-                                                    (event.createdAt
-                                                        |> Maybe.map (\posix -> posixToString posix model.timeZone)
-                                                        |> Maybe.withDefault "Unknown DateTime"
-                                                    )
+                                                [ event.createdAt
+                                                    |> Maybe.map (posixToString model.timeZone)
+                                                    |> Maybe.withDefault "Unknown DateTime"
+                                                    |> text
                                                 ]
                                             , td
                                                 [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
-                                                [ badge (PubNub.topicToString event.topic)
-                                                , span [ Attr.class "ml-2" ]
-                                                    [ text "" ]
-                                                ]
+                                                [ topicBadge (PubNub.topicToString event.topic) ]
                                             , td
                                                 [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
                                                 [ span [ Attr.class "" ]
@@ -761,9 +756,7 @@ viewEventsTable model =
                                             , td
                                                 [ Attr.class "col-span-full px-10 py-2 border-t cursor-default bg-white"
                                                 , Attr.classList
-                                                    [ ( "hidden"
-                                                      , Maybe.withDefault "non_existent_id" model.expandedEventId /= event.id
-                                                      )
+                                                    [ ( "hidden", Maybe.withDefault "non_existent_id" model.expandedEventId /= event.id )
                                                     ]
                                                 ]
                                                 [ div [ Attr.class "mb-1.5 text-gray-500 select-none" ]
