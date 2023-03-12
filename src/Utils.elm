@@ -10,11 +10,6 @@ mkTestAttribute =
     Attr.attribute "data-testid" << String.toLower
 
 
-posixToStringShort : Time.Posix -> String
-posixToStringShort posix =
-    ""
-
-
 posixToString : Time.Posix -> Time.Zone -> String
 posixToString posix tz =
     let
