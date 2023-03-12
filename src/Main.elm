@@ -12,6 +12,7 @@ import Icon
 import InteropDefinitions
 import InteropPorts
 import Json.Decode as Decode
+import Json.Encode as Encode
 import PubNub exposing (Event, EventDomain(..), SubscriptionCreds)
 import RemoteData as RD exposing (RemoteData(..), WebData)
 import Space exposing (Space)
@@ -859,6 +860,12 @@ viewEventsTable model =
                                                                 [ text eventId ]
                                                         )
                                                         event.context.proceedingEventId
+                                                    ]
+                                                , div [ Attr.class "mt-4 mb-1.5 text-gray-500 select-none" ]
+                                                    [ span [] [ text "Payload" ]
+                                                    ]
+                                                , pre []
+                                                    [ code [ Attr.class "font-mono text-sm text-gray-800" ] [ text <| Encode.encode 2 event.payload ]
                                                     ]
                                                 ]
                                             ]
