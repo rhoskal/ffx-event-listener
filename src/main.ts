@@ -26,15 +26,31 @@ Sentry.init({
   tracesSampleRate: 1.0,
 });
 
-const isDev = (): boolean => import.meta.env.DEV ?? false;
+const isProd = (): boolean => import.meta.env.PROD ?? false;
 
-const css: string = "color: #FFFFFF; background-color: #4C48EF; padding: 4px;";
+const css: string = "color: #ffffff; background-color: #4c48ef; padding: 4px;";
 
-export const prettyPrint = (level: "info" | "warn" | "error", msg: string) => {
+export const prettyPrint = (
+  level: "info" | "warn" | "error",
+  title: string,
+  messages: ReadonlyArray<string>,
+) => {
   match(level)
-    .with("info", () => console.log(`%c⥤ [CRISPY] ${msg}`, css))
-    .with("warn", () => console.warn(`%c⥤ [CRISPY] ${msg}`, css))
-    .with("error", () => console.error(`%c⥤ [CRISPY] ${msg}`, css))
+    .with("info", () => {
+      console.group(`%c[crispy-critters] ${title} ⥤`, css);
+      messages.map(console.log);
+      console.groupEnd();
+    })
+    .with("warn", () => {
+      console.group(`%c[crispy-critters] ${title} ⥤`, css);
+      messages.map(console.warn);
+      console.groupEnd();
+    })
+    .with("error", () => {
+      console.group(`%c[crispy-critters] ${title} ⥤`, css);
+      messages.map(console.error);
+      console.groupEnd();
+    })
     .exhaustive();
 };
 
@@ -47,7 +63,7 @@ const openExternalLink =
 const reportIssue =
   (msg: string, context?: any): IO.IO<void> =>
   () => {
-    if (!isDev()) {
+    if (isProd()) {
       Sentry.captureException(msg);
 
       if (context !== null || context !== undefined) {
@@ -66,20 +82,20 @@ app.ports.interopFromElm.subscribe((fromElm) => {
       const pubnub = new PubNub({
         subscribeKey: data.subscribeKey,
         userId: data.accountId,
-        // logVerbosity: isDev(),
+        // logVerbosity: !isProd(),
       });
 
       pubnub.addListener({
         message: function (m) {
-          if (isDev()) {
-            prettyPrint("info", "Event:\n".concat(m.message));
+          if (!isProd()) {
+            prettyPrint("info", "PubNub Event", [m.message]);
           }
 
           pipe(
             J.parse(m.message),
             E.match(
               () => {
-                prettyPrint("warn", "Unabled to parse PubNub JSON:\n".concat(m.message));
+                prettyPrint("warn", "JSON parse", [m.message]);
 
                 reportIssue("Unable to parse PubNub JSON", m.message)();
               },
