@@ -1,13 +1,11 @@
 module UtilsSpec exposing (..)
 
-import Expect
 import Html
 import Html.Attributes as Attr
 import Test exposing (..)
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
-import Time
-import Utils exposing (mkTestAttribute, posixToString)
+import Utils exposing (mkTestAttribute)
 
 
 suite : Test
@@ -23,11 +21,5 @@ suite =
                             [ Selector.attribute <|
                                 Attr.attribute "data-testid" "foo-bar"
                             ]
-            ]
-        , describe "time"
-            [ test "posixToString" <|
-                \() ->
-                    posixToString (Time.millisToPosix 0) Time.utc
-                        |> Expect.equal "1st Jan 1970 00:00:00.0"
             ]
         ]

@@ -11,11 +11,11 @@ module PubNub exposing
 
 import Api exposing (Cred)
 import Api.Endpoint as Endpoint
-import Environment exposing (EnvironmentId)
+import EnvironmentId exposing (EnvironmentId)
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (WebData)
-import Space exposing (SpaceId)
+import SpaceId exposing (SpaceId)
 import Time
 
 
@@ -89,7 +89,7 @@ type alias EventContext =
 
 auth : SpaceId -> Maybe Cred -> (WebData SubscriptionCreds -> msg) -> Cmd msg
 auth spaceId maybeCred toMsg =
-    Api.get (Endpoint.pubNubAuth <| Space.unwrap spaceId) maybeCred toMsg subscriptionCredsDecoder
+    Api.get (Endpoint.pubNubAuth <| SpaceId.toString spaceId) maybeCred toMsg subscriptionCredsDecoder
 
 
 
