@@ -1,10 +1,6 @@
 module EnvironmentSpec exposing (..)
 
-import Environment
-    exposing
-        ( environmentDecoder
-        , environmentIdDecoder
-        )
+import Environment exposing (environmentDecoder)
 import Expect
 import Fuzz exposing (string)
 import Json.Decode as Decode
@@ -32,9 +28,4 @@ suite =
                     |> Encode.object
                     |> Decode.decodeValue environmentDecoder
                     |> Expect.err
-        , fuzz string "environmentIdDecoder maps a string to an EnvironmentId" <|
-            \id ->
-                Encode.string id
-                    |> Decode.decodeValue environmentIdDecoder
-                    |> Expect.ok
         ]

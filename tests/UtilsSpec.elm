@@ -1,12 +1,10 @@
 module UtilsSpec exposing (..)
 
-import Expect
 import Html
 import Html.Attributes as Attr
 import Test exposing (..)
 import Test.Html.Query as Query
 import Test.Html.Selector as Selector
-import Time
 import Utils exposing (mkTestAttribute)
 
 

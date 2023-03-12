@@ -4,7 +4,7 @@ import Expect
 import Fuzz exposing (string)
 import Json.Decode as Decode
 import Json.Encode as Encode
-import Space exposing (spaceDecoder, spaceIdDecoder)
+import Space exposing (spaceDecoder)
 import Test exposing (..)
 
 
@@ -27,11 +27,6 @@ suite =
                     |> Encode.object
                     |> Decode.decodeValue spaceDecoder
                     |> Expect.err
-        , fuzz string "spaceIdDecoder maps a string to a SpaceId" <|
-            \id ->
-                Encode.string id
-                    |> Decode.decodeValue spaceIdDecoder
-                    |> Expect.ok
 
         -- , fuzz2 string string "spacesDecoder maps required fields to a List Space" <|
         --     \id environmentId ->
