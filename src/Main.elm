@@ -429,7 +429,7 @@ viewSelectEnvironment model =
                                 ]
                             , span [ Attr.class "ml-2 truncate text-gray-500" ]
                                 [ Maybe.map (.id >> EnvironmentId.toString) model.selectedEnvironment
-                                    |> Maybe.withDefault "[Unnamed]"
+                                    |> Maybe.withDefault ""
                                     |> text
                                 ]
                             ]
@@ -541,7 +541,7 @@ viewSelectSpace model =
                                 ]
                             , span [ Attr.class "ml-2 truncate text-gray-500" ]
                                 [ Maybe.map (.id >> SpaceId.toString) model.selectedSpace
-                                    |> Maybe.withDefault "[Unnamed]"
+                                    |> Maybe.withDefault ""
                                     |> text
                                 ]
                             ]
