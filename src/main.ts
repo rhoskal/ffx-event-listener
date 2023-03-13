@@ -16,8 +16,11 @@ const app = Elm.Main.init({
   flags: null,
 });
 
+const isProd = (): boolean => import.meta.env.PROD ?? false;
+
 Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN ?? "",
+  debug: !isProd(),
   integrations: [new BrowserTracing()],
 
   // Set tracesSampleRate to 1.0 to capture 100%
@@ -25,8 +28,6 @@ Sentry.init({
   // We recommend adjusting this value in production
   tracesSampleRate: 1.0,
 });
-
-const isProd = (): boolean => import.meta.env.PROD ?? false;
 
 const css: string = "color: #ffffff; background-color: #4c48ef; padding: 4px;";
 
