@@ -904,7 +904,7 @@ view model =
                 Failure _ ->
                     section [ mkTestAttribute "section-auth", Attr.class "" ]
                         [ div []
-                            [ text "Failure :(" ]
+                            [ text "Uh oh... Failed to authenticate :(" ]
                         ]
             , case model.selectedEnvironment of
                 Just env ->
