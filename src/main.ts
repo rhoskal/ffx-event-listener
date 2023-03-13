@@ -34,7 +34,7 @@ export const prettyPrint = (
   level: "info" | "warn" | "error",
   title: string,
   messages: ReadonlyArray<string>,
-) => {
+): void => {
   console.group(`%c[crispy-critters] ${title} ⥤`, css);
 
   match(level)
@@ -52,30 +52,29 @@ export const prettyPrint = (
   console.groupEnd();
 };
 
-const openExternalLink =
-  (url: string): IO.IO<void> =>
-  () => {
+const openExternalLink = (url: string): IO.IO<void> => {
+  return () => {
     return window.open(url, "_blank")?.focus();
   };
+};
 
-const reportIssue =
-  (msg: string, context?: any): IO.IO<void> =>
-  () => {
+const reportIssue = (msg: string, producer: "fromElm" | "fromJs"): IO.IO<void> => {
+  return () => {
     if (isProd()) {
-      Sentry.captureException(msg);
+      Sentry.withScope(function (scope) {
+        scope.setTag("producer", producer);
+        scope.setContext(producer, { message: msg });
 
-      if (context !== null || context !== undefined) {
-        Sentry.setContext("message", context);
-      }
+        Sentry.captureMessage(msg);
+      });
     }
-
-    return;
   };
+};
 
 app.ports.interopFromElm.subscribe((fromElm) => {
   return match(fromElm)
     .with({ tag: "openExternalLink" }, ({ data }) => openExternalLink(data.url)())
-    .with({ tag: "reportIssue" }, ({ data }) => reportIssue(data.message)())
+    .with({ tag: "reportIssue" }, ({ data }) => reportIssue(data.message, "fromElm")())
     .with({ tag: "subscriptionCreds" }, ({ data }) => {
       const pubnub = new PubNub({
         subscribeKey: data.subscribeKey,
@@ -95,7 +94,7 @@ app.ports.interopFromElm.subscribe((fromElm) => {
               () => {
                 prettyPrint("warn", "JSON parse", [m.message]);
 
-                reportIssue("Unable to parse PubNub JSON", m.message)();
+                reportIssue("Unable to parse PubNub JSON\n\n".concat(m.message), "fromJs")();
               },
               (json) => {
                 app.ports.interopToElm.send(json as any);
