@@ -351,6 +351,13 @@ viewMeta selectedEnvironment selectedSpace timeZone =
                 , div [ Attr.class "inline-flex items-center text-sm text-gray-300" ]
                     [ Icon.defaults
                         |> Icon.withSize 20
+                        |> Icon.version
+                    , span [ Attr.class "ml-1.5" ]
+                        [ text selectedSpace.spaceConfigId ]
+                    ]
+                , div [ Attr.class "inline-flex items-center text-sm text-gray-300" ]
+                    [ Icon.defaults
+                        |> Icon.withSize 20
                         |> Icon.calendar
                     , span [ Attr.class "ml-1.5" ]
                         [ text createdAt ]
