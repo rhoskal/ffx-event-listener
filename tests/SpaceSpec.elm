@@ -11,17 +11,19 @@ import Test exposing (..)
 suite : Test
 suite =
     describe "[Space]"
-        [ fuzz2 string string "spaceDecoder maps required fields to a Space" <|
-            \id environmentId ->
+        [ fuzz3 string string string "spaceDecoder maps required fields to a Space" <|
+            \id spaceConfigId environmentId ->
                 [ ( "id", Encode.string id )
+                , ( "spaceConfigId", Encode.string spaceConfigId )
                 , ( "environmentId", Encode.string environmentId )
                 ]
                     |> Encode.object
                     |> Decode.decodeValue spaceDecoder
                     |> Expect.ok
-        , fuzz2 string string "spaceDecoder fails to map required fields to a Space" <|
-            \id environmentId ->
+        , fuzz3 string string string "spaceDecoder fails to map required fields to a Space" <|
+            \id spaceConfigId environmentId ->
                 [ ( "id", Encode.string id )
+                , ( "spaceConfigId", Encode.string spaceConfigId )
                 , ( "environmentid", Encode.string environmentId )
                 ]
                     |> Encode.object
