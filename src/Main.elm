@@ -723,7 +723,7 @@ viewEventsTable model =
                                         [ Attr.class "whitespace-nowrap py-3.5 px-2"
                                         , Attr.scope "col"
                                         ]
-                                        [ text "Summary" ]
+                                        [ text "Topic" ]
                                     , th
                                         [ Attr.class "whitespace-nowrap py-3.5 px-2"
                                         , Attr.scope "col"
