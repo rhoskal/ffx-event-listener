@@ -360,7 +360,16 @@ viewMeta selectedEnvironment selectedSpace timeZone =
     let
         spaceName : String
         spaceName =
-            Maybe.withDefault ("[Unnamed — " ++ SpaceId.toString selectedSpace.id ++ "]") selectedSpace.name
+            selectedSpace.name
+                |> Maybe.andThen
+                    (\name ->
+                        if name == "" then
+                            Just "[Unnamed]"
+
+                        else
+                            Just name
+                    )
+                |> Maybe.withDefault "[Unnamed]"
 
         environmentName : String
         environmentName =
@@ -582,16 +591,29 @@ viewSelectSpace model =
                         ]
                         [ span [ Attr.class "inline-flex w-full truncate" ]
                             [ span [ Attr.class "truncate select-none" ]
-                                [ Maybe.map .name model.selectedSpace
-                                    |> Maybe.andThen identity
-                                    |> Maybe.withDefault "Select..."
-                                    |> text
+                                [ case model.selectedSpace of
+                                    Just space ->
+                                        space.name
+                                            |> Maybe.andThen
+                                                (\name ->
+                                                    if name == "" then
+                                                        Just "[Unnamed]"
+
+                                                    else
+                                                        Just name
+                                                )
+                                            |> Maybe.withDefault "[Unnamed]"
+                                            |> text
+
+                                    Nothing ->
+                                        text "Select..."
                                 ]
-                            , span [ Attr.class "ml-2 truncate text-gray-500" ]
-                                [ Maybe.map (.id >> SpaceId.toString) model.selectedSpace
-                                    |> Maybe.withDefault ""
-                                    |> text
-                                ]
+                            , Html.Extra.viewMaybe
+                                (\space ->
+                                    span [ Attr.class "ml-2 truncate text-gray-500" ]
+                                        [ (.id >> SpaceId.toString >> text) <| space ]
+                                )
+                                model.selectedSpace
                             ]
                         , span [ Attr.class "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2 text-gray-400" ]
                             [ Icon.defaults
@@ -638,7 +660,18 @@ viewSelectSpace model =
                                                 , ( "truncate", True )
                                                 ]
                                             ]
-                                            [ text <| Maybe.withDefault "[Unnamed]" space.name ]
+                                            [ space.name
+                                                |> Maybe.andThen
+                                                    (\name ->
+                                                        if name == "" then
+                                                            Just "[Unnamed]"
+
+                                                        else
+                                                            Just name
+                                                    )
+                                                |> Maybe.withDefault "[Unnamed]"
+                                                |> text
+                                            ]
                                         , span [ Attr.class "text-gray-500 ml-2 truncate" ]
                                             [ text spaceId ]
                                         ]
