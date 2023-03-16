@@ -1,7 +1,9 @@
 module Api.Endpoint exposing
     ( Endpoint
     , auth
+    , listAgents
     , listEnvironments
+    , listLogEntries
     , listSpaces
     , pubNubAuth
     , request
@@ -81,3 +83,16 @@ listSpaces environmentId =
 pubNubAuth : String -> Endpoint
 pubNubAuth spaceId =
     url [ "spaces", spaceId, "subscription" ] []
+
+
+listAgents : String -> Endpoint
+listAgents environmentId =
+    url [ "environments", environmentId, "agents" ] []
+
+
+listLogEntries : String -> Endpoint
+listLogEntries environmentId =
+    url [ "environments", environmentId, "logs" ]
+        [ Url.Builder.int "pageSize" 1
+        , Url.Builder.int "pageNumber" 1
+        ]

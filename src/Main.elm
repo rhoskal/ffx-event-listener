@@ -1,9 +1,14 @@
 module Main exposing (..)
 
+import Agent exposing (Agent)
+import AgentId
 import Api exposing (Cred)
 import Browser
 import Environment exposing (Environment)
 import EnvironmentId
+import EventDomain
+import EventId exposing (EventId)
+import EventTopic
 import Html exposing (..)
 import Html.Attributes as Attr
 import Html.Attributes.Extra as AttrExtra
@@ -14,7 +19,8 @@ import InteropDefinitions
 import InteropPorts
 import Json.Decode as Decode
 import Json.Encode as Encode
-import PubNub exposing (Event, EventDomain(..), SubscriptionCreds)
+import LogEntry exposing (LogEntry)
+import PubNub exposing (Event, SubscriptionCreds)
 import RemoteData as RD exposing (RemoteData(..), WebData)
 import Space exposing (Space)
 import SpaceId
@@ -40,8 +46,10 @@ type alias Model =
     , spaces : WebData (List Space)
     , events : List Event
     , subscriptionCreds : WebData SubscriptionCreds
-    , expandedEventId : Maybe String
+    , expandedEventId : Maybe EventId
     , timeZone : Time.Zone
+    , agents : WebData (List Agent)
+    , logEntries : WebData (List LogEntry)
     }
 
 
@@ -61,6 +69,8 @@ defaults =
     , subscriptionCreds = NotAsked
     , expandedEventId = Nothing
     , timeZone = Time.utc
+    , agents = NotAsked
+    , logEntries = NotAsked
     }
 
 
@@ -81,7 +91,7 @@ init flags =
 type Msg
     = Reset
     | OpenExternalLink String
-    | ClickedEvent String
+    | ClickedEvent EventId
     | ReceivedDomainEvent (Result Decode.Error InteropDefinitions.ToElm)
     | TimeZone (Result () Time.Zone)
       -- Form
@@ -98,6 +108,8 @@ type Msg
     | GotEnvironmentsResponse (WebData (List Environment))
     | GotSpacesResponse (WebData (List Space))
     | GotSubscriptionCredsResponse (WebData SubscriptionCreds)
+    | GotAgentsResponse (WebData (List Agent))
+    | GotLogEntriesResponse (WebData (List LogEntry))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -155,32 +167,51 @@ update msg model =
             ( { model | showSecret = not model.showSecret }, Cmd.none )
 
         SelectedEnvironment env ->
+            let
+                maybeCred : Maybe Cred
+                maybeCred =
+                    RD.toMaybe model.accessToken
+            in
             ( { model
                 | selectedEnvironment = Just env
                 , showEnvironmentChoices = False
               }
-            , Space.list env.id (RD.toMaybe model.accessToken) GotSpacesResponse
+            , Cmd.batch
+                [ Space.list env.id maybeCred GotSpacesResponse
+                , Agent.list env.id maybeCred GotAgentsResponse
+                , LogEntry.list env.id maybeCred GotLogEntriesResponse
+                ]
             )
 
         ToggleEnvironmentChoices ->
             ( { model | showEnvironmentChoices = not model.showEnvironmentChoices }, Cmd.none )
 
         SelectedSpace space ->
+            let
+                maybeCred : Maybe Cred
+                maybeCred =
+                    RD.toMaybe model.accessToken
+            in
             ( { model
                 | selectedSpace = Just space
                 , showSpaceChoices = False
               }
-            , PubNub.auth space.id (RD.toMaybe model.accessToken) GotSubscriptionCredsResponse
+            , PubNub.auth space.id maybeCred GotSubscriptionCredsResponse
             )
 
         ToggleSpaceChoices ->
             ( { model | showSpaceChoices = not model.showSpaceChoices }, Cmd.none )
 
         GotAuthResponse response ->
+            let
+                maybeCred : Maybe Cred
+                maybeCred =
+                    RD.toMaybe response
+            in
             case response of
                 Success _ ->
                     ( { model | accessToken = response }
-                    , Environment.list (RD.toMaybe response) GotEnvironmentsResponse
+                    , Environment.list maybeCred GotEnvironmentsResponse
                     )
 
                 Failure _ ->
@@ -225,6 +256,12 @@ update msg model =
                 _ ->
                     Cmd.none
             )
+
+        GotAgentsResponse response ->
+            ( { model | agents = response }, Cmd.none )
+
+        GotLogEntriesResponse response ->
+            ( { model | logEntries = response }, Cmd.none )
 
 
 
@@ -630,7 +667,7 @@ viewSelectSpace model =
 viewEventsTable : Model -> Html Msg
 viewEventsTable model =
     let
-        arrowIcon : String -> Html msg
+        arrowIcon : EventId -> Html msg
         arrowIcon incomingEventId =
             case model.expandedEventId of
                 Just previousEventId ->
@@ -648,30 +685,6 @@ viewEventsTable model =
                     Icon.defaults
                         |> Icon.withSize 20
                         |> Icon.arrowRight
-
-        domainBadge : EventDomain -> Html msg
-        domainBadge domain =
-            case domain of
-                FileDomain ->
-                    span [ Attr.class "inline-flex items-center rounded-md bg-sky-200 px-2.5 py-0.5 text-sm font-medium text-sky-500 select-none" ]
-                        [ text (PubNub.domainToString domain) ]
-
-                JobDomain ->
-                    span [ Attr.class "inline-flex items-center rounded-md bg-purple-200 px-2.5 py-0.5 text-sm font-medium text-purple-500 select-none" ]
-                        [ text (PubNub.domainToString domain) ]
-
-                SpaceDomain ->
-                    span [ Attr.class "inline-flex items-center rounded-md bg-green-200 px-2.5 py-0.5 text-sm font-medium text-green-500 select-none" ]
-                        [ text (PubNub.domainToString domain) ]
-
-                WorkbookDomain ->
-                    span [ Attr.class "inline-flex items-center rounded-md bg-fuchsia-200 px-2.5 py-0.5 text-sm font-medium text-fuchsia-500 select-none" ]
-                        [ text (PubNub.domainToString domain) ]
-
-        topicBadge : String -> Html msg
-        topicBadge eventTopic =
-            span [ Attr.class "inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-800 select-none" ]
-                [ text eventTopic ]
     in
     if List.length model.events == 0 then
         div [ Attr.class "relative block w-full rounded-lg border-2 border-dashed border-gray-300 p-12 text-center hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" ]
@@ -738,7 +751,11 @@ viewEventsTable model =
                                         tr
                                             [ Attr.class "grid grid-cols-5 flex items-center"
                                             , Attr.classList
-                                                [ ( "bg-cyan-50", Maybe.withDefault "non_existent_id" model.expandedEventId == event.id )
+                                                [ ( "bg-cyan-50"
+                                                  , model.expandedEventId
+                                                        |> Maybe.map (\id -> id == event.id)
+                                                        |> Maybe.withDefault False
+                                                  )
                                                 ]
                                             ]
                                             [ td
@@ -748,7 +765,7 @@ viewEventsTable model =
                                                 [ arrowIcon event.id ]
                                             , td
                                                 [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
-                                                [ domainBadge event.domain ]
+                                                [ EventDomain.toHtml event.domain ]
                                             , td
                                                 [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
                                                 [ event.createdAt
@@ -758,16 +775,20 @@ viewEventsTable model =
                                                 ]
                                             , td
                                                 [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
-                                                [ topicBadge (PubNub.topicToString event.topic) ]
+                                                [ EventTopic.toHtml event.topic ]
                                             , td
                                                 [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
                                                 [ span [ Attr.class "" ]
-                                                    [ text event.id ]
+                                                    [ text <| EventId.toString event.id ]
                                                 ]
                                             , td
                                                 [ Attr.class "col-span-full px-10 py-2 border-t cursor-default bg-white"
                                                 , Attr.classList
-                                                    [ ( "hidden", Maybe.withDefault "non_existent_id" model.expandedEventId /= event.id )
+                                                    [ ( "hidden"
+                                                      , model.expandedEventId
+                                                            |> Maybe.map (\id -> id /= event.id)
+                                                            |> Maybe.withDefault True
+                                                      )
                                                     ]
                                                 ]
                                                 [ div [ Attr.class "mb-1.5 text-gray-500 select-none" ]
@@ -871,7 +892,8 @@ viewEventsTable model =
                                                     [ span [] [ text "Payload" ]
                                                     ]
                                                 , pre []
-                                                    [ code [ Attr.class "font-mono text-sm text-gray-800" ] [ text <| Encode.encode 2 event.payload ]
+                                                    [ code [ Attr.class "font-mono text-sm text-gray-800" ]
+                                                        [ text <| Encode.encode 2 event.payload ]
                                                     ]
                                                 ]
                                             ]
@@ -885,6 +907,79 @@ viewEventsTable model =
             ]
 
 
+viewAgentsTable : Model -> Html msg
+viewAgentsTable model =
+    case model.agents of
+        NotAsked ->
+            div [ Attr.class "" ]
+                [ text "Not Asked" ]
+
+        Loading ->
+            div [ Attr.class "" ]
+                [ text "Loading..." ]
+
+        Success agents ->
+            if List.length agents == 0 then
+                div [ Attr.class "" ]
+                    [ text "No Agents" ]
+
+            else
+                div [ Attr.class "w-1/2 mb-8" ]
+                    [ div [ Attr.class "flex items-center" ]
+                        [ div [ Attr.class "flex-auto" ]
+                            [ h1 [ Attr.class "text-base font-semibold leading-6 text-gray-900" ]
+                                [ text "Agents" ]
+                            , p [ Attr.class "mt-2 text-sm text-gray-700" ]
+                                [ text "Agents are workers that subscribe to certain event topics..." ]
+                            ]
+                        ]
+                    , div [ Attr.class "mt-8 flow-root ring-1 ring-gray-300 rounded-lg" ]
+                        [ div [ Attr.class "-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8" ]
+                            [ div [ Attr.class "inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8" ]
+                                [ table [ Attr.class "min-w-full divide-y divide-gray-300" ]
+                                    [ thead [ Attr.class "text-left text-sm font-semibold text-gray-900" ]
+                                        [ tr [ Attr.class "flex items-center" ]
+                                            [ th
+                                                [ Attr.class "whitespace-nowrap py-3.5 px-2"
+                                                , Attr.scope "col"
+                                                ]
+                                                [ text "Unique Identifier" ]
+                                            , th
+                                                [ Attr.class "whitespace-nowrap py-3.5 px-2"
+                                                , Attr.scope "col"
+                                                ]
+                                                [ text "Subscribed To" ]
+                                            ]
+                                        ]
+                                    , tbody [ Attr.class "divide-y divide-gray-200 bg-white" ]
+                                        (List.map
+                                            (\agent ->
+                                                tr [ Attr.class "flex items-center" ]
+                                                    [ td [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
+                                                        [ text <| AgentId.toString agent.id ]
+                                                    , td [ Attr.class "whitespace-nowrap p-2 space-x-2" ]
+                                                        (case agent.topics of
+                                                            Just topics ->
+                                                                List.map EventTopic.toHtml topics
+
+                                                            Nothing ->
+                                                                [ Html.Extra.nothing ]
+                                                        )
+                                                    ]
+                                            )
+                                            agents
+                                        )
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ]
+
+        Failure _ ->
+            div [ Attr.class "" ]
+                [ text "Failure" ]
+
+
 view : Model -> Browser.Document Msg
 view model =
     { title = "Crispy Critters"
@@ -894,8 +989,7 @@ view model =
                 NotAsked ->
                     section [ mkTestAttribute "section-auth", Attr.class "" ]
                         [ div [ Attr.class "w-full" ]
-                            [ viewAuthForm model
-                            ]
+                            [ viewAuthForm model ]
                         ]
 
                 Loading ->
@@ -921,16 +1015,17 @@ view model =
                 Just env ->
                     case model.selectedSpace of
                         Just space ->
-                            section [ mkTestAttribute "section-events", Attr.class "" ]
+                            section [ mkTestAttribute "section-data", Attr.class "" ]
                                 [ viewMeta env space model.timeZone
+                                , viewAgentsTable model
                                 , viewEventsTable model
                                 ]
 
                         Nothing ->
-                            section [ mkTestAttribute "section-events", Attr.class "" ] []
+                            section [ mkTestAttribute "section-data", Attr.class "" ] []
 
                 Nothing ->
-                    section [ mkTestAttribute "section-events", Attr.class "" ] []
+                    section [ mkTestAttribute "section-data", Attr.class "" ] []
             ]
         ]
     }
