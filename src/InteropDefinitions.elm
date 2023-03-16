@@ -6,14 +6,11 @@ module InteropDefinitions exposing
     )
 
 import EnvironmentId exposing (EnvironmentId)
+import EventDomain exposing (EventDomain(..))
+import EventId exposing (EventId)
+import EventTopic exposing (EventTopic(..))
 import Iso8601
-import PubNub
-    exposing
-        ( Event
-        , EventContext
-        , EventDomain(..)
-        , EventTopic(..)
-        )
+import PubNub exposing (Event, EventContext)
 import SpaceId exposing (SpaceId)
 import Time exposing (Posix)
 import TsJson.Decode as TsDecode exposing (Decoder)
@@ -101,12 +98,17 @@ toElm =
 domainEventDecoder : Decoder Event
 domainEventDecoder =
     TsDecode.succeed Event
-        |> required "id" TsDecode.string
+        |> required "id" eventIdDecoder
         |> required "domain" domainDecoder
         |> required "topic" topicDecoder
         |> required "context" contextDecoder
         |> required "payload" TsDecode.value
         |> optional "createdAt" (TsDecode.maybe posixFromIso8601Decoder) Nothing
+
+
+eventIdDecoder : Decoder EventId
+eventIdDecoder =
+    TsDecode.map EventId.wrap TsDecode.string
 
 
 domainDecoder : Decoder EventDomain
