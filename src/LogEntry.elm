@@ -7,17 +7,17 @@ import Api exposing (Cred)
 import Api.Endpoint as Endpoint
 import EnvironmentId exposing (EnvironmentId)
 import EventId exposing (EventId)
-import Iso8601
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (required)
 import RemoteData exposing (WebData)
-import Time
+import Time exposing (Posix)
+import Timestamp
 
 
 type alias LogEntry =
     { eventId : EventId
     , success : Bool
-    , createdAt : Time.Posix
+    , createdAt : Posix
     , content : String
     }
 
@@ -50,5 +50,5 @@ logEntryDecoder =
     Decode.succeed LogEntry
         |> required "eventId" EventId.decoder
         |> required "success" Decode.bool
-        |> required "createdAt" Iso8601.decoder
+        |> required "createdAt" Timestamp.decoder
         |> required "log" Decode.string

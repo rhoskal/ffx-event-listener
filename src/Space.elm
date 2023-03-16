@@ -7,12 +7,12 @@ module Space exposing
 import Api exposing (Cred)
 import Api.Endpoint as Endpoint
 import EnvironmentId exposing (EnvironmentId)
-import Iso8601
 import Json.Decode as Decode exposing (Decoder)
 import Json.Decode.Pipeline exposing (optional, required)
 import RemoteData exposing (WebData)
 import SpaceId exposing (SpaceId)
-import Time
+import Time exposing (Posix)
+import Timestamp
 
 
 type alias Space =
@@ -20,7 +20,7 @@ type alias Space =
     , workbooksCount : Maybe Int
     , filesCount : Maybe Int
     , createdByUserName : Maybe String
-    , createdAt : Maybe Time.Posix
+    , createdAt : Maybe Posix
     , spaceConfigId : String
     , environmentId : EnvironmentId
     , name : Maybe String
@@ -57,7 +57,7 @@ spaceDecoder =
         |> optional "workbooksCount" (Decode.maybe Decode.int) Nothing
         |> optional "filesCount" (Decode.maybe Decode.int) Nothing
         |> optional "createdByUserName" (Decode.maybe Decode.string) Nothing
-        |> optional "createdAt" (Decode.maybe Iso8601.decoder) Nothing
+        |> optional "createdAt" (Decode.maybe Timestamp.decoder) Nothing
         |> required "spaceConfigId" Decode.string
         |> required "environmentId" EnvironmentId.decoder
         |> optional "name" (Decode.maybe Decode.string) Nothing

@@ -26,7 +26,8 @@ import Space exposing (Space)
 import SpaceId
 import Task
 import Time
-import Utils exposing (mkTestAttribute, posixToString)
+import Timestamp
+import Utils exposing (mkTestAttribute)
 
 
 
@@ -382,7 +383,7 @@ viewMeta selectedEnvironment selectedSpace timeZone =
         createdAt : String
         createdAt =
             selectedSpace.createdAt
-                |> Maybe.map (posixToString timeZone)
+                |> Maybe.map (Timestamp.toString timeZone)
                 |> Maybe.withDefault "[Date Unknown]"
 
         createdBy : String
@@ -802,7 +803,7 @@ viewEventsTable model =
                                             , td
                                                 [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
                                                 [ event.createdAt
-                                                    |> Maybe.map (posixToString model.timeZone)
+                                                    |> Maybe.map (Timestamp.toString model.timeZone)
                                                     |> Maybe.withDefault "Unknown DateTime"
                                                     |> text
                                                 ]
