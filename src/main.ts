@@ -72,12 +72,18 @@ const reportIssue = (msg: string, producer: "fromElm" | "fromJs"): IO.IO<void> =
   };
 };
 
+let pubnub: null | PubNub = null;
+
 app.ports.interopFromElm.subscribe((fromElm) => {
   return match(fromElm)
     .with({ tag: "openExternalLink" }, ({ data }) => openExternalLink(data.url)())
     .with({ tag: "reportIssue" }, ({ data }) => reportIssue(data.message, "fromElm")())
     .with({ tag: "subscriptionCreds" }, ({ data }) => {
-      const pubnub = new PubNub({
+      if (pubnub !== null) {
+        pubnub.stop();
+      }
+
+      pubnub = new PubNub({
         subscribeKey: data.subscribeKey,
         userId: data.accountId,
         // logVerbosity: !isProd(),
