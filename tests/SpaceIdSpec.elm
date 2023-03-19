@@ -2,9 +2,9 @@ module SpaceIdSpec exposing (..)
 
 import Expect
 import Fuzz exposing (string)
-import Json.Decode as Decode
-import Json.Encode as Encode
-import SpaceId exposing (decoder)
+import Json.Decode as D
+import Json.Encode as E
+import SpaceId
 import Test exposing (..)
 
 
@@ -13,7 +13,7 @@ suite =
     describe "[SpaceId]"
         [ fuzz string "decoder maps a string to a SpaceId" <|
             \id ->
-                Encode.string id
-                    |> Decode.decodeValue decoder
+                E.string id
+                    |> D.decodeValue SpaceId.decoder
                     |> Expect.ok
         ]

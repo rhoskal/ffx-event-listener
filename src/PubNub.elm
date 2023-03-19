@@ -5,16 +5,16 @@ module PubNub exposing
     , auth
     )
 
-import Api exposing (Cred)
+import Api
 import Api.Endpoint as Endpoint
-import EnvironmentId exposing (EnvironmentId)
-import EventDomain exposing (EventDomain)
-import EventId exposing (EventId)
-import EventTopic exposing (EventTopic)
-import Json.Decode as Decode exposing (Decoder)
+import EnvironmentId
+import EventDomain
+import EventId
+import EventTopic
+import Json.Decode as D
 import Json.Decode.Pipeline exposing (required)
-import RemoteData exposing (WebData)
-import SpaceId exposing (SpaceId)
+import RemoteData as RD
+import SpaceId
 import Time
 
 
@@ -26,11 +26,11 @@ type alias SubscriptionCreds =
 
 
 type alias Event =
-    { id : EventId
-    , domain : EventDomain
-    , topic : EventTopic
+    { id : EventId.EventId
+    , domain : EventDomain.EventDomain
+    , topic : EventTopic.EventTopic
     , context : EventContext
-    , payload : Decode.Value
+    , payload : D.Value
     , createdAt : Maybe Time.Posix
     }
 
@@ -38,8 +38,8 @@ type alias Event =
 type alias EventContext =
     { actionName : Maybe String
     , accountId : String
-    , environmentId : EnvironmentId
-    , spaceId : Maybe SpaceId
+    , environmentId : EnvironmentId.EnvironmentId
+    , spaceId : Maybe SpaceId.SpaceId
     , workbookId : Maybe String
     , sheetId : Maybe String
     , sheetSlug : Maybe String
@@ -54,23 +54,24 @@ type alias EventContext =
 -- HTTP
 
 
-auth : SpaceId -> Maybe Cred -> (WebData SubscriptionCreds -> msg) -> Cmd msg
+auth :
+    SpaceId.SpaceId
+    -> Maybe Api.Cred
+    -> (RD.WebData SubscriptionCreds -> msg)
+    -> Cmd msg
 auth spaceId maybeCred toMsg =
-    Api.get (Endpoint.pubNubAuth <| SpaceId.toString spaceId) maybeCred toMsg subscriptionCredsDecoder
+    Api.get (Endpoint.pubNubAuth <| SpaceId.toString spaceId) maybeCred toMsg decoder
 
 
 
--- DECODERS
+-- JSON
 
 
-subscriptionCredsDecoder : Decoder SubscriptionCreds
-subscriptionCredsDecoder =
-    let
-        decoder : Decoder SubscriptionCreds
-        decoder =
-            Decode.succeed SubscriptionCreds
-                |> required "accountId" Decode.string
-                |> required "subscribeKey" Decode.string
-                |> required "token" Decode.string
-    in
-    Decode.at [ "data" ] decoder
+decoder : D.Decoder SubscriptionCreds
+decoder =
+    D.at [ "data" ]
+        (D.succeed SubscriptionCreds
+            |> required "accountId" D.string
+            |> required "subscribeKey" D.string
+            |> required "token" D.string
+        )

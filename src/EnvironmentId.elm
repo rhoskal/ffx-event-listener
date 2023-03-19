@@ -5,7 +5,7 @@ module EnvironmentId exposing
     , wrap
     )
 
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as D
 
 
 {-| Opaque type. DO NOT EXPOSE variants!
@@ -28,9 +28,9 @@ wrap =
 
 
 
--- DECODERS
+-- JSON
 
 
-decoder : Decoder EnvironmentId
+decoder : D.Decoder EnvironmentId
 decoder =
-    Decode.map EnvironmentId Decode.string
+    D.map EnvironmentId D.string

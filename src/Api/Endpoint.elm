@@ -9,8 +9,8 @@ module Api.Endpoint exposing
     , request
     )
 
-import Http exposing (Body, Expect, Header)
-import Url.Builder exposing (QueryParameter)
+import Http
+import Url.Builder
 
 
 type Endpoint
@@ -20,9 +20,9 @@ type Endpoint
 {-| Http.request, except it takes an Endpoint instead of a Url.
 -}
 request :
-    { body : Body
-    , expect : Expect msg
-    , headers : List Header
+    { body : Http.Body
+    , expect : Http.Expect msg
+    , headers : List Http.Header
     , method : String
     , timeout : Maybe Float
     , tracker : Maybe String
@@ -50,7 +50,7 @@ unwrap (Endpoint str) =
     str
 
 
-url : List String -> List QueryParameter -> Endpoint
+url : List String -> List Url.Builder.QueryParameter -> Endpoint
 url paths queryParams =
     Url.Builder.crossOrigin "https://api.x.flatfile.com/v1" paths queryParams
         |> Endpoint
@@ -62,12 +62,14 @@ url paths queryParams =
 
 auth : Endpoint
 auth =
-    url [ "auth", "access-token" ] []
+    url [ "auth", "access-token" ]
+        []
 
 
 listEnvironments : Endpoint
 listEnvironments =
-    url [ "environments" ] []
+    url [ "environments" ]
+        []
 
 
 listSpaces : String -> Endpoint
@@ -82,12 +84,14 @@ listSpaces environmentId =
 
 pubNubAuth : String -> Endpoint
 pubNubAuth spaceId =
-    url [ "spaces", spaceId, "subscription" ] []
+    url [ "spaces", spaceId, "subscription" ]
+        []
 
 
 listAgents : String -> Endpoint
 listAgents environmentId =
-    url [ "environments", environmentId, "agents" ] []
+    url [ "environments", environmentId, "agents" ]
+        []
 
 
 listLogEntries : String -> Endpoint

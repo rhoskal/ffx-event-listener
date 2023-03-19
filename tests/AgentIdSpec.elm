@@ -1,10 +1,10 @@
 module AgentIdSpec exposing (..)
 
-import AgentId exposing (decoder)
+import AgentId
 import Expect
 import Fuzz exposing (string)
-import Json.Decode as Decode
-import Json.Encode as Encode
+import Json.Decode as D
+import Json.Encode as E
 import Test exposing (..)
 
 
@@ -13,7 +13,7 @@ suite =
     describe "[AgentId]"
         [ fuzz string "decoder maps a string to an AgentId" <|
             \id ->
-                Encode.string id
-                    |> Decode.decodeValue decoder
+                E.string id
+                    |> D.decodeValue AgentId.decoder
                     |> Expect.ok
         ]

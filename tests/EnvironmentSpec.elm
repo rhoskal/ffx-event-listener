@@ -1,10 +1,10 @@
 module EnvironmentSpec exposing (..)
 
-import Environment exposing (environmentDecoder)
+import Environment
 import Expect
 import Fuzz exposing (string)
-import Json.Decode as Decode
-import Json.Encode as Encode
+import Json.Decode as D
+import Json.Encode as E
 import Test exposing (..)
 
 
@@ -13,19 +13,19 @@ suite =
     describe "[Environment]"
         [ fuzz3 string string string "environmentDecoder maps required fields to an Environment" <|
             \id accountId name ->
-                [ ( "id", Encode.string id )
-                , ( "accountId", Encode.string accountId )
-                , ( "name", Encode.string name )
+                [ ( "id", E.string id )
+                , ( "accountId", E.string accountId )
+                , ( "name", E.string name )
                 ]
-                    |> Encode.object
-                    |> Decode.decodeValue environmentDecoder
+                    |> E.object
+                    |> D.decodeValue Environment.decoder
                     |> Expect.ok
         , fuzz2 string string "environmentDecoder fails to map required fields to an Environemnt" <|
             \id name ->
-                [ ( "id", Encode.string id )
-                , ( "name", Encode.string name )
+                [ ( "id", E.string id )
+                , ( "name", E.string name )
                 ]
-                    |> Encode.object
-                    |> Decode.decodeValue environmentDecoder
+                    |> E.object
+                    |> D.decodeValue Environment.decoder
                     |> Expect.err
         ]

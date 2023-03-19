@@ -5,7 +5,7 @@ module SpaceId exposing
     , wrap
     )
 
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as D
 
 
 {-| Opaque type. DO NOT EXPOSE variants!
@@ -28,9 +28,9 @@ wrap =
 
 
 
--- DECODERS
+-- JSON
 
 
-decoder : Decoder SpaceId
+decoder : D.Decoder SpaceId
 decoder =
-    Decode.map SpaceId Decode.string
+    D.map SpaceId D.string

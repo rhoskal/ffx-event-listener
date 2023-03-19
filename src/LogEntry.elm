@@ -3,21 +3,21 @@ module LogEntry exposing
     , list
     )
 
-import Api exposing (Cred)
+import Api
 import Api.Endpoint as Endpoint
-import EnvironmentId exposing (EnvironmentId)
-import EventId exposing (EventId)
-import Json.Decode as Decode exposing (Decoder)
+import EnvironmentId
+import EventId
+import Json.Decode as D
 import Json.Decode.Pipeline exposing (required)
-import RemoteData exposing (WebData)
-import Time exposing (Posix)
+import RemoteData as RD
+import Time
 import Timestamp
 
 
 type alias LogEntry =
-    { eventId : EventId
+    { eventId : EventId.EventId
     , success : Bool
-    , createdAt : Posix
+    , createdAt : Time.Posix
     , content : String
     }
 
@@ -26,29 +26,33 @@ type alias LogEntry =
 -- HTTPS
 
 
-list : EnvironmentId -> Maybe Cred -> (WebData (List LogEntry) -> msg) -> Cmd msg
+list :
+    EnvironmentId.EnvironmentId
+    -> Maybe Api.Cred
+    -> (RD.WebData (List LogEntry) -> msg)
+    -> Cmd msg
 list environmentId maybeCred toMsg =
     let
         envId : String
         envId =
             EnvironmentId.toString environmentId
     in
-    Api.get (Endpoint.listLogEntries envId) maybeCred toMsg logEntriesDecoder
+    Api.get (Endpoint.listLogEntries envId) maybeCred toMsg listDecoder
 
 
 
--- DECODERS
+-- JSON
 
 
-logEntriesDecoder : Decoder (List LogEntry)
-logEntriesDecoder =
-    Decode.at [ "data" ] (Decode.list logEntryDecoder)
+listDecoder : D.Decoder (List LogEntry)
+listDecoder =
+    D.at [ "data" ] (D.list decoder)
 
 
-logEntryDecoder : Decoder LogEntry
-logEntryDecoder =
-    Decode.succeed LogEntry
+decoder : D.Decoder LogEntry
+decoder =
+    D.succeed LogEntry
         |> required "eventId" EventId.decoder
-        |> required "success" Decode.bool
+        |> required "success" D.bool
         |> required "createdAt" Timestamp.decoder
-        |> required "log" Decode.string
+        |> required "log" D.string

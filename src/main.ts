@@ -13,7 +13,9 @@ import "./devs";
 
 const app = Elm.Main.init({
   node: document.querySelector<HTMLDivElement>("#root"),
-  flags: null,
+  flags: {
+    accessToken: localStorage.getItem("accessToken"),
+  },
 });
 
 const isProd = (): boolean => import.meta.env.PROD ?? false;
