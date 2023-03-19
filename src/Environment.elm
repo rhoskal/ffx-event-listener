@@ -1,19 +1,19 @@
 module Environment exposing
     ( Environment
-    , environmentDecoder
+    , decoder
     , list
     )
 
-import Api exposing (Cred)
+import Api
 import Api.Endpoint as Endpoint
-import EnvironmentId exposing (EnvironmentId)
-import Json.Decode as Decode exposing (Decoder)
+import EnvironmentId
+import Json.Decode as D
 import Json.Decode.Pipeline exposing (required)
-import RemoteData exposing (WebData)
+import RemoteData as RD
 
 
 type alias Environment =
-    { id : EnvironmentId
+    { id : EnvironmentId.EnvironmentId
     , accountId : String
     , name : String
     }
@@ -23,23 +23,26 @@ type alias Environment =
 -- HTTP
 
 
-list : Maybe Cred -> (WebData (List Environment) -> msg) -> Cmd msg
+list :
+    Maybe Api.Cred
+    -> (RD.WebData (List Environment) -> msg)
+    -> Cmd msg
 list maybeCred toMsg =
-    Api.get Endpoint.listEnvironments maybeCred toMsg environmentsDecoder
+    Api.get Endpoint.listEnvironments maybeCred toMsg listDecoder
 
 
 
--- DECODERS
+-- JSON
 
 
-environmentsDecoder : Decoder (List Environment)
-environmentsDecoder =
-    Decode.at [ "data" ] (Decode.list environmentDecoder)
+listDecoder : D.Decoder (List Environment)
+listDecoder =
+    D.at [ "data" ] (D.list decoder)
 
 
-environmentDecoder : Decoder Environment
-environmentDecoder =
-    Decode.succeed Environment
+decoder : D.Decoder Environment
+decoder =
+    D.succeed Environment
         |> required "id" EnvironmentId.decoder
-        |> required "accountId" Decode.string
-        |> required "name" Decode.string
+        |> required "accountId" D.string
+        |> required "name" D.string

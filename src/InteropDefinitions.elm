@@ -5,23 +5,23 @@ module InteropDefinitions exposing
     , interop
     )
 
-import EnvironmentId exposing (EnvironmentId)
-import EventDomain exposing (EventDomain(..))
-import EventId exposing (EventId)
-import EventTopic exposing (EventTopic(..))
+import EnvironmentId
+import EventDomain
+import EventId
+import EventTopic
 import Iso8601
-import PubNub exposing (Event, EventContext)
-import SpaceId exposing (SpaceId)
-import Time exposing (Posix)
-import TsJson.Decode as TsDecode exposing (Decoder)
+import PubNub
+import SpaceId
+import Time
+import TsJson.Decode as TsDecode
 import TsJson.Decode.Pipeline exposing (optional, required)
-import TsJson.Encode as TsEncode exposing (Encoder)
+import TsJson.Encode as TsEncode
 
 
 interop :
-    { toElm : Decoder ToElm
-    , fromElm : Encoder FromElm
-    , flags : Decoder Flags
+    { toElm : TsDecode.Decoder ToElm
+    , fromElm : TsEncode.Encoder FromElm
+    , flags : TsDecode.Decoder Flags
     }
 interop =
     { toElm = toElm
@@ -35,14 +35,14 @@ type FromElm
     | ReportIssue String
     | UsePubNubCreds
         { accountId : String
-        , spaceId : SpaceId
+        , spaceId : SpaceId.SpaceId
         , subscribeKey : String
         , token : String
         }
 
 
 type ToElm
-    = PNDomainEvent Event
+    = PNDomainEvent PubNub.Event
 
 
 type alias Flags =
@@ -53,7 +53,7 @@ type alias Flags =
 -- ENCODERS
 
 
-fromElm : Encoder FromElm
+fromElm : TsEncode.Encoder FromElm
 fromElm =
     TsEncode.union
         (\vExternalLink vReportIssue vPubNubCreds value ->
@@ -90,14 +90,14 @@ fromElm =
 -- DECODERS
 
 
-toElm : Decoder ToElm
+toElm : TsDecode.Decoder ToElm
 toElm =
     TsDecode.map PNDomainEvent domainEventDecoder
 
 
-domainEventDecoder : Decoder Event
+domainEventDecoder : TsDecode.Decoder PubNub.Event
 domainEventDecoder =
-    TsDecode.succeed Event
+    TsDecode.succeed PubNub.Event
         |> required "id" eventIdDecoder
         |> required "domain" domainDecoder
         |> required "topic" topicDecoder
@@ -106,52 +106,52 @@ domainEventDecoder =
         |> optional "createdAt" (TsDecode.maybe posixFromIso8601Decoder) Nothing
 
 
-eventIdDecoder : Decoder EventId
+eventIdDecoder : TsDecode.Decoder EventId.EventId
 eventIdDecoder =
     TsDecode.map EventId.wrap TsDecode.string
 
 
-domainDecoder : Decoder EventDomain
+domainDecoder : TsDecode.Decoder EventDomain.EventDomain
 domainDecoder =
     TsDecode.stringUnion
-        [ ( "file", FileDomain )
-        , ( "job", JobDomain )
-        , ( "space", SpaceDomain )
-        , ( "workbook", WorkbookDomain )
+        [ ( "file", EventDomain.FileDomain )
+        , ( "job", EventDomain.JobDomain )
+        , ( "space", EventDomain.SpaceDomain )
+        , ( "workbook", EventDomain.WorkbookDomain )
         ]
 
 
-topicDecoder : Decoder EventTopic
+topicDecoder : TsDecode.Decoder EventTopic.EventTopic
 topicDecoder =
     TsDecode.stringUnion
-        [ ( "action:triggered", ActionTriggered )
-        , ( "job:completed", JobCompleted )
-        , ( "job:deleted", JobDeleted )
-        , ( "job:failed", JobFailed )
-        , ( "job:started", JobStarted )
-        , ( "job:updated", JobUpdated )
-        , ( "job:waiting", JobWaiting )
-        , ( "records:created", RecordsCreated )
-        , ( "records:deleted", RecordsDeleted )
-        , ( "records:updated", RecordsUpdated )
-        , ( "sheet:validated", SheetValidated )
-        , ( "space:added", SpaceAdded )
-        , ( "space:removed", SpaceRemoved )
-        , ( "upload:completed", UploadCompleted )
-        , ( "upload:failed", UploadFailed )
-        , ( "upload:started", UploadStarted )
-        , ( "user:added", UserAdded )
-        , ( "user:offline", UserOffline )
-        , ( "user:online", UserOnline )
-        , ( "user:removed", UserRemoved )
-        , ( "workbook:added", WorkbookAdded )
-        , ( "workbook:removed", WorkbookRemoved )
+        [ ( "action:triggered", EventTopic.ActionTriggered )
+        , ( "job:completed", EventTopic.JobCompleted )
+        , ( "job:deleted", EventTopic.JobDeleted )
+        , ( "job:failed", EventTopic.JobFailed )
+        , ( "job:started", EventTopic.JobStarted )
+        , ( "job:updated", EventTopic.JobUpdated )
+        , ( "job:waiting", EventTopic.JobWaiting )
+        , ( "records:created", EventTopic.RecordsCreated )
+        , ( "records:deleted", EventTopic.RecordsDeleted )
+        , ( "records:updated", EventTopic.RecordsUpdated )
+        , ( "sheet:validated", EventTopic.SheetValidated )
+        , ( "space:added", EventTopic.SpaceAdded )
+        , ( "space:removed", EventTopic.SpaceRemoved )
+        , ( "upload:completed", EventTopic.UploadCompleted )
+        , ( "upload:failed", EventTopic.UploadFailed )
+        , ( "upload:started", EventTopic.UploadStarted )
+        , ( "user:added", EventTopic.UserAdded )
+        , ( "user:offline", EventTopic.UserOffline )
+        , ( "user:online", EventTopic.UserOnline )
+        , ( "user:removed", EventTopic.UserRemoved )
+        , ( "workbook:added", EventTopic.WorkbookAdded )
+        , ( "workbook:removed", EventTopic.WorkbookRemoved )
         ]
 
 
-contextDecoder : Decoder EventContext
+contextDecoder : TsDecode.Decoder PubNub.EventContext
 contextDecoder =
-    TsDecode.succeed EventContext
+    TsDecode.succeed PubNub.EventContext
         |> optional "actionName" (TsDecode.maybe TsDecode.string) Nothing
         |> required "accountId" TsDecode.string
         |> required "environmentId" environmentIdDecoder
@@ -165,20 +165,20 @@ contextDecoder =
         |> optional "procedingEventId" (TsDecode.maybe TsDecode.string) Nothing
 
 
-environmentIdDecoder : Decoder EnvironmentId
+environmentIdDecoder : TsDecode.Decoder EnvironmentId.EnvironmentId
 environmentIdDecoder =
     TsDecode.map EnvironmentId.wrap TsDecode.string
 
 
-spaceIdDecoder : Decoder SpaceId
+spaceIdDecoder : TsDecode.Decoder SpaceId.SpaceId
 spaceIdDecoder =
     TsDecode.map SpaceId.wrap TsDecode.string
 
 
-posixFromIso8601Decoder : Decoder Posix
+posixFromIso8601Decoder : TsDecode.Decoder Time.Posix
 posixFromIso8601Decoder =
     let
-        decoder : Decoder (String -> Posix)
+        decoder : TsDecode.Decoder (String -> Time.Posix)
         decoder =
             TsDecode.succeed <|
                 (Iso8601.toTime >> Result.withDefault (Time.millisToPosix 0))
@@ -186,6 +186,6 @@ posixFromIso8601Decoder =
     TsDecode.andMap TsDecode.string decoder
 
 
-flags : Decoder Flags
+flags : TsDecode.Decoder Flags
 flags =
     TsDecode.null {}

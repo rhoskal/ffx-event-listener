@@ -1,28 +1,28 @@
 module Space exposing
     ( Space
+    , decoder
     , list
-    , spaceDecoder
     )
 
-import Api exposing (Cred)
+import Api
 import Api.Endpoint as Endpoint
-import EnvironmentId exposing (EnvironmentId)
-import Json.Decode as Decode exposing (Decoder)
+import EnvironmentId
+import Json.Decode as D
 import Json.Decode.Pipeline exposing (optional, required)
-import RemoteData exposing (WebData)
-import SpaceId exposing (SpaceId)
-import Time exposing (Posix)
+import RemoteData as RD
+import SpaceId
+import Time
 import Timestamp
 
 
 type alias Space =
-    { id : SpaceId
+    { id : SpaceId.SpaceId
     , workbooksCount : Maybe Int
     , filesCount : Maybe Int
     , createdByUserName : Maybe String
-    , createdAt : Maybe Posix
+    , createdAt : Maybe Time.Posix
     , spaceConfigId : String
-    , environmentId : EnvironmentId
+    , environmentId : EnvironmentId.EnvironmentId
     , name : Maybe String
     }
 
@@ -31,33 +31,37 @@ type alias Space =
 -- HTTP
 
 
-list : EnvironmentId -> Maybe Cred -> (WebData (List Space) -> msg) -> Cmd msg
+list :
+    EnvironmentId.EnvironmentId
+    -> Maybe Api.Cred
+    -> (RD.WebData (List Space) -> msg)
+    -> Cmd msg
 list environmentId maybeCred toMsg =
     let
         envId : String
         envId =
             EnvironmentId.toString environmentId
     in
-    Api.get (Endpoint.listSpaces envId) maybeCred toMsg spacesDecoder
+    Api.get (Endpoint.listSpaces envId) maybeCred toMsg listDecoder
 
 
 
--- DECODERS
+-- JSON
 
 
-spacesDecoder : Decoder (List Space)
-spacesDecoder =
-    Decode.at [ "data" ] (Decode.list spaceDecoder)
+listDecoder : D.Decoder (List Space)
+listDecoder =
+    D.at [ "data" ] (D.list decoder)
 
 
-spaceDecoder : Decoder Space
-spaceDecoder =
-    Decode.succeed Space
+decoder : D.Decoder Space
+decoder =
+    D.succeed Space
         |> required "id" SpaceId.decoder
-        |> optional "workbooksCount" (Decode.maybe Decode.int) Nothing
-        |> optional "filesCount" (Decode.maybe Decode.int) Nothing
-        |> optional "createdByUserName" (Decode.maybe Decode.string) Nothing
-        |> optional "createdAt" (Decode.maybe Timestamp.decoder) Nothing
-        |> required "spaceConfigId" Decode.string
+        |> optional "workbooksCount" (D.maybe D.int) Nothing
+        |> optional "filesCount" (D.maybe D.int) Nothing
+        |> optional "createdByUserName" (D.maybe D.string) Nothing
+        |> optional "createdAt" (D.maybe Timestamp.decoder) Nothing
+        |> required "spaceConfigId" D.string
         |> required "environmentId" EnvironmentId.decoder
-        |> optional "name" (Decode.maybe Decode.string) Nothing
+        |> optional "name" (D.maybe D.string) Nothing

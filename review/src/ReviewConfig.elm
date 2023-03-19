@@ -14,8 +14,8 @@ config =
     [ NoInconsistentAliases.config
         [ ( "Html.Attributes", "Attr" )
         , ( "Html.Events", "Events" )
-        , ( "Json.Decode", "Decode" )
-        , ( "Json.Encode", "Encode" )
+        , ( "Json.Decode", "D" )
+        , ( "Json.Encode", "E" )
         , ( "RemoteData", "RD" )
         ]
         |> NoInconsistentAliases.noMissingAliases

@@ -2,7 +2,7 @@ module Timestamp exposing (decoder, toString)
 
 import DateFormat
 import Iso8601
-import Json.Decode exposing (Decoder)
+import Json.Decode as D
 import Time
 
 
@@ -28,9 +28,9 @@ toString =
 
 
 
--- DECODERS
+-- JSON
 
 
-decoder : Decoder Time.Posix
+decoder : D.Decoder Time.Posix
 decoder =
     Iso8601.decoder

@@ -1,10 +1,10 @@
 module EventIdSpec exposing (..)
 
-import EventId exposing (decoder)
+import EventId
 import Expect
 import Fuzz exposing (string)
-import Json.Decode as Decode
-import Json.Encode as Encode
+import Json.Decode as D
+import Json.Encode as E
 import Test exposing (..)
 
 
@@ -13,7 +13,7 @@ suite =
     describe "[EventId]"
         [ fuzz string "decoder maps a string to a EventId" <|
             \id ->
-                Encode.string id
-                    |> Decode.decodeValue decoder
+                E.string id
+                    |> D.decodeValue EventId.decoder
                     |> Expect.ok
         ]
