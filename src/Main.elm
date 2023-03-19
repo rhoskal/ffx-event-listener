@@ -11,6 +11,7 @@ import Page.Login as Login
 import Page.NotFound as NotFound
 import Page.Stats as Stats
 import Route
+import Session
 import Skeleton
 import Url
 import Viewer
@@ -20,15 +21,9 @@ import Viewer
 -- MODEL
 
 
-type alias Model =
-    { navKey : Nav.Key
-    , page : Page
-    , viewer : Maybe Viewer.Viewer
-    }
-
-
-type Page
-    = NotFound
+type Model
+    = NotFound Session.Session
+    | Redirect Session.Session
     | Home Home.Model
     | Login Login.Model
     | Stats Stats.Model
@@ -38,22 +33,28 @@ init : D.Value -> Url.Url -> Nav.Key -> ( Model, Cmd Msg )
 init flags url navKey =
     case InteropPorts.decodeFlags flags of
         Err _ ->
-            stepUrl url
-                { navKey = navKey
-                , page = NotFound
-                , viewer = Nothing
-                }
+            let
+                maybeViewer : Maybe Viewer.Viewer
+                maybeViewer =
+                    Nothing
+
+                model : Model
+                model =
+                    Redirect (Session.fromViewer navKey maybeViewer)
+            in
+            stepUrl url model
 
         Ok { accessToken } ->
             let
+                maybeViewer : Maybe Viewer.Viewer
                 maybeViewer =
                     Maybe.map Viewer.wrap accessToken
+
+                model : Model
+                model =
+                    Redirect (Session.fromViewer navKey maybeViewer)
             in
-            stepUrl url
-                { navKey = navKey
-                , page = NotFound
-                , viewer = maybeViewer
-                }
+            stepUrl url model
 
 
 
@@ -62,8 +63,11 @@ init flags url navKey =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    case model.page of
-        NotFound ->
+    case model of
+        NotFound _ ->
+            Sub.none
+
+        Redirect _ ->
             Sub.none
 
         Home home ->
@@ -86,6 +90,7 @@ type Msg
     | HomeMsg Home.Msg
     | LoginMsg Login.Msg
     | StatsMsg Stats.Msg
+    | GotSession Session.Session
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -95,7 +100,7 @@ update msg model =
             case urlRequest of
                 Browser.Internal url ->
                     ( model
-                    , Nav.pushUrl model.navKey (Url.toString url)
+                    , Nav.pushUrl (Session.navKey <| session model) (Url.toString url)
                     )
 
                 Browser.External url ->
@@ -108,43 +113,46 @@ update msg model =
             stepUrl url model
 
         HomeMsg subMsg ->
-            case model.page of
+            case model of
                 Home home ->
-                    stepHome model (Home.update subMsg home)
+                    stepHome (Home.update subMsg home)
 
                 _ ->
                     ( model, Cmd.none )
 
         LoginMsg subMsg ->
-            case model.page of
+            case model of
                 Login login ->
-                    stepLogin model (Login.update subMsg login)
+                    stepLogin (Login.update subMsg login)
 
                 _ ->
                     ( model, Cmd.none )
 
         StatsMsg subMsg ->
-            case model.page of
+            case model of
                 Stats stats ->
-                    stepStats model (Stats.update subMsg stats)
+                    stepStats (Stats.update subMsg stats)
 
                 _ ->
                     ( model, Cmd.none )
 
-
-stepHome : Model -> ( Home.Model, Cmd Home.Msg ) -> ( Model, Cmd Msg )
-stepHome model ( home, cmds ) =
-    ( { model | page = Home home }, Cmd.map HomeMsg cmds )
+        GotSession session ->
+            stepUrl
 
 
-stepLogin : Model -> ( Login.Model, Cmd Login.Msg ) -> ( Model, Cmd Msg )
-stepLogin model ( login, cmds ) =
-    ( { model | page = Login login }, Cmd.map LoginMsg cmds )
+stepHome : ( Home.Model, Cmd Home.Msg ) -> ( Model, Cmd Msg )
+stepHome ( home, cmds ) =
+    ( Home home, Cmd.map HomeMsg cmds )
 
 
-stepStats : Model -> ( Stats.Model, Cmd Stats.Msg ) -> ( Model, Cmd Msg )
-stepStats model ( stats, cmds ) =
-    ( { model | page = Stats stats }, Cmd.map StatsMsg cmds )
+stepLogin : ( Login.Model, Cmd Login.Msg ) -> ( Model, Cmd Msg )
+stepLogin ( login, cmds ) =
+    ( Login login, Cmd.map LoginMsg cmds )
+
+
+stepStats : ( Stats.Model, Cmd Stats.Msg ) -> ( Model, Cmd Msg )
+stepStats ( stats, cmds ) =
+    ( Stats stats, Cmd.map StatsMsg cmds )
 
 
 stepUrl : Url.Url -> Model -> ( Model, Cmd Msg )
@@ -153,22 +161,45 @@ stepUrl url model =
         maybeRoute : Maybe Route.Route
         maybeRoute =
             Route.fromUrl url
+
+        session_ : Session.Session
+        session_ =
+            session model
     in
     case maybeRoute of
         Just Route.Home ->
-            stepHome model Home.init
+            stepHome (Home.init session_)
 
         Just Route.Login ->
-            stepLogin model Login.init
+            stepLogin (Login.init session_)
 
         Just Route.Logout ->
             ( model, Cmd.none )
 
         Just Route.Stats ->
-            stepStats model Stats.init
+            stepStats (Stats.init session_)
 
         Nothing ->
-            ( model, Cmd.none )
+            ( NotFound session_, Cmd.none )
+
+
+session : Model -> Session.Session
+session model =
+    case model of
+        NotFound session_ ->
+            session_
+
+        Redirect session_ ->
+            session_
+
+        Home home ->
+            Home.session home
+
+        Login login ->
+            Login.session login
+
+        Stats stats ->
+            Stats.session stats
 
 
 
@@ -187,8 +218,11 @@ view model =
             , body = List.map (Html.map toMsg) body
             }
     in
-    case model.page of
-        NotFound ->
+    case model of
+        NotFound _ ->
+            Skeleton.view Skeleton.Other NotFound.view
+
+        Redirect _ ->
             Skeleton.view Skeleton.Other NotFound.view
 
         Home home ->

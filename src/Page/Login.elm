@@ -2,6 +2,7 @@ module Page.Login exposing
     ( Model
     , Msg
     , init
+    , session
     , subscriptions
     , update
     , view
@@ -12,6 +13,7 @@ import Html.Attributes as Attr
 import Html.Events as Events
 import Html.Extra
 import Icon
+import Session
 
 
 
@@ -23,11 +25,12 @@ type alias Model =
     , form : Form
     , parsedEmail : Maybe Email
     , parsedPassword : Maybe Password
+    , session : Session.Session
     }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : Session.Session -> ( Model, Cmd Msg )
+init session_ =
     ( { showPassword = False
       , form =
             { email = ""
@@ -36,6 +39,7 @@ init =
             }
       , parsedEmail = Nothing
       , parsedPassword = Nothing
+      , session = session_
       }
     , Cmd.none
     )
@@ -291,3 +295,8 @@ parsePassword str =
 
     else
         ValidPassword str
+
+
+session : Model -> Session.Session
+session model =
+    model.session
