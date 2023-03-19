@@ -4,7 +4,7 @@ module AgentId exposing
     , toString
     )
 
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as D
 
 
 {-| Opaque type. DO NOT EXPOSE variants!
@@ -22,9 +22,9 @@ toString (AgentId id) =
 
 
 
--- DECODERS
+-- JSON
 
 
-decoder : Decoder AgentId
+decoder : D.Decoder AgentId
 decoder =
-    Decode.map AgentId Decode.string
+    D.map AgentId D.string

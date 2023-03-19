@@ -1,10 +1,10 @@
 module EnvironmentIdSpec exposing (..)
 
-import EnvironmentId exposing (decoder)
+import EnvironmentId
 import Expect
 import Fuzz exposing (string)
-import Json.Decode as Decode
-import Json.Encode as Encode
+import Json.Decode as D
+import Json.Encode as E
 import Test exposing (..)
 
 
@@ -13,7 +13,7 @@ suite =
     describe "[EnvironmentId]"
         [ fuzz string "decoder maps a string to a EnvironmentId" <|
             \id ->
-                Encode.string id
-                    |> Decode.decodeValue decoder
+                E.string id
+                    |> D.decodeValue EnvironmentId.decoder
                     |> Expect.ok
         ]

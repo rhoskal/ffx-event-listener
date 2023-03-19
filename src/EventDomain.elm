@@ -3,7 +3,7 @@ module EventDomain exposing
     , toHtml
     )
 
-import Html exposing (Html, span, text)
+import Html exposing (span, text)
 import Html.Attributes as Attr
 
 
@@ -30,7 +30,7 @@ toString domain =
             "Workspace"
 
 
-toHtml : EventDomain -> Html msg
+toHtml : EventDomain -> Html.Html msg
 toHtml eventDomain =
     case eventDomain of
         FileDomain ->

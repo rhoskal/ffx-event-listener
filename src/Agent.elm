@@ -3,19 +3,19 @@ module Agent exposing
     , list
     )
 
-import AgentId exposing (AgentId)
-import Api exposing (Cred)
+import AgentId
+import Api
 import Api.Endpoint as Endpoint
-import EnvironmentId exposing (EnvironmentId)
-import EventTopic exposing (EventTopic)
-import Json.Decode as Decode exposing (Decoder)
+import EnvironmentId
+import EventTopic
+import Json.Decode as D
 import Json.Decode.Pipeline exposing (optional, required)
-import RemoteData exposing (WebData)
+import RemoteData as RD
 
 
 type alias Agent =
-    { id : AgentId
-    , topics : Maybe (List EventTopic)
+    { id : AgentId.AgentId
+    , topics : Maybe (List EventTopic.EventTopic)
     }
 
 
@@ -23,27 +23,31 @@ type alias Agent =
 -- HTTP
 
 
-list : EnvironmentId -> Maybe Cred -> (WebData (List Agent) -> msg) -> Cmd msg
+list :
+    EnvironmentId.EnvironmentId
+    -> Maybe Api.Cred
+    -> (RD.WebData (List Agent) -> msg)
+    -> Cmd msg
 list environmentId maybeCred toMsg =
     let
         envId : String
         envId =
             EnvironmentId.toString environmentId
     in
-    Api.get (Endpoint.listAgents envId) maybeCred toMsg agentsDecoder
+    Api.get (Endpoint.listAgents envId) maybeCred toMsg listDecoder
 
 
 
--- DECODERS
+-- JSON
 
 
-agentsDecoder : Decoder (List Agent)
-agentsDecoder =
-    Decode.at [ "data" ] (Decode.list agentDecoder)
+listDecoder : D.Decoder (List Agent)
+listDecoder =
+    D.at [ "data" ] (D.list decoder)
 
 
-agentDecoder : Decoder Agent
-agentDecoder =
-    Decode.succeed Agent
+decoder : D.Decoder Agent
+decoder =
+    D.succeed Agent
         |> required "id" AgentId.decoder
-        |> optional "topics" (Decode.maybe (Decode.list EventTopic.decoder)) Nothing
+        |> optional "topics" (D.maybe (D.list EventTopic.decoder)) Nothing

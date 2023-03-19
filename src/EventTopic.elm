@@ -4,9 +4,9 @@ module EventTopic exposing
     , toHtml
     )
 
-import Html exposing (Html, span, text)
+import Html exposing (span, text)
 import Html.Attributes as Attr
-import Json.Decode as Decode exposing (Decoder)
+import Json.Decode as D
 
 
 type EventTopic
@@ -35,83 +35,83 @@ type EventTopic
 
 
 
--- DECODERS
+-- JSON
 
 
-decoder : Decoder EventTopic
+decoder : D.Decoder EventTopic
 decoder =
-    Decode.string
-        |> Decode.andThen
+    D.string
+        |> D.andThen
             (\topic ->
                 case topic of
                     "action:triggered" ->
-                        Decode.succeed ActionTriggered
+                        D.succeed ActionTriggered
 
                     "job:completed" ->
-                        Decode.succeed JobCompleted
+                        D.succeed JobCompleted
 
                     "job:deleted" ->
-                        Decode.succeed JobDeleted
+                        D.succeed JobDeleted
 
                     "job:failed" ->
-                        Decode.succeed JobFailed
+                        D.succeed JobFailed
 
                     "job:started" ->
-                        Decode.succeed JobStarted
+                        D.succeed JobStarted
 
                     "job:updated" ->
-                        Decode.succeed JobUpdated
+                        D.succeed JobUpdated
 
                     "job:waiting" ->
-                        Decode.succeed JobWaiting
+                        D.succeed JobWaiting
 
                     "records:created" ->
-                        Decode.succeed RecordsCreated
+                        D.succeed RecordsCreated
 
                     "records:deleted" ->
-                        Decode.succeed RecordsDeleted
+                        D.succeed RecordsDeleted
 
                     "records:updated" ->
-                        Decode.succeed RecordsUpdated
+                        D.succeed RecordsUpdated
 
                     "sheet:validated" ->
-                        Decode.succeed SheetValidated
+                        D.succeed SheetValidated
 
                     "space:added" ->
-                        Decode.succeed SpaceAdded
+                        D.succeed SpaceAdded
 
                     "space:removed" ->
-                        Decode.succeed SpaceRemoved
+                        D.succeed SpaceRemoved
 
                     "upload:completed" ->
-                        Decode.succeed UploadCompleted
+                        D.succeed UploadCompleted
 
                     "upload:failed" ->
-                        Decode.succeed UploadFailed
+                        D.succeed UploadFailed
 
                     "upload:started" ->
-                        Decode.succeed UploadStarted
+                        D.succeed UploadStarted
 
                     "user:added" ->
-                        Decode.succeed UserAdded
+                        D.succeed UserAdded
 
                     "user:offline" ->
-                        Decode.succeed UserOffline
+                        D.succeed UserOffline
 
                     "user:online" ->
-                        Decode.succeed UserOnline
+                        D.succeed UserOnline
 
                     "user:removed" ->
-                        Decode.succeed UserRemoved
+                        D.succeed UserRemoved
 
                     "workbook:added" ->
-                        Decode.succeed WorkbookAdded
+                        D.succeed WorkbookAdded
 
                     "workbook:removed" ->
-                        Decode.succeed WorkbookRemoved
+                        D.succeed WorkbookRemoved
 
                     _ ->
-                        Decode.fail ("Unknown event topic encountered: " ++ topic)
+                        D.fail ("Unknown event topic encountered: " ++ topic)
             )
 
 
@@ -189,7 +189,7 @@ toString topic =
             "workbook:removed"
 
 
-toHtml : EventTopic -> Html msg
+toHtml : EventTopic -> Html.Html msg
 toHtml eventTopic =
     span [ Attr.class "inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-sm font-medium text-gray-800 select-none" ]
         [ text <| toString eventTopic ]

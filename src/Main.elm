@@ -1,13 +1,13 @@
 module Main exposing (..)
 
-import Agent exposing (Agent)
+import Agent
 import AgentId
-import Api exposing (Cred)
+import Api
 import Browser
-import Environment exposing (Environment)
+import Environment
 import EnvironmentId
 import EventDomain
-import EventId exposing (EventId)
+import EventId
 import EventTopic
 import Html exposing (..)
 import Html.Attributes as Attr
@@ -17,12 +17,12 @@ import Html.Extra
 import Icon
 import InteropDefinitions
 import InteropPorts
-import Json.Decode as Decode
-import Json.Encode as Encode
-import LogEntry exposing (LogEntry)
-import PubNub exposing (Event, SubscriptionCreds)
-import RemoteData as RD exposing (RemoteData(..), WebData)
-import Space exposing (Space)
+import Json.Decode as D
+import Json.Encode as E
+import LogEntry
+import PubNub
+import RemoteData as RD
+import Space
 import SpaceId
 import Task
 import Time
@@ -37,20 +37,20 @@ import Utils exposing (mkTestAttribute)
 type alias Model =
     { clientId : String
     , secretKey : String
-    , accessToken : WebData Cred
+    , accessToken : RD.WebData Api.Cred
     , showSecret : Bool
     , showEnvironmentChoices : Bool
-    , selectedEnvironment : Maybe Environment
-    , environments : WebData (List Environment)
+    , selectedEnvironment : Maybe Environment.Environment
+    , environments : RD.WebData (List Environment.Environment)
     , showSpaceChoices : Bool
-    , selectedSpace : Maybe Space
-    , spaces : WebData (List Space)
-    , events : List Event
-    , subscriptionCreds : WebData SubscriptionCreds
-    , expandedEventId : Maybe EventId
+    , selectedSpace : Maybe Space.Space
+    , spaces : RD.WebData (List Space.Space)
+    , events : List PubNub.Event
+    , subscriptionCreds : RD.WebData PubNub.SubscriptionCreds
+    , expandedEventId : Maybe EventId.EventId
     , timeZone : Time.Zone
-    , agents : WebData (List Agent)
-    , logEntries : WebData (List LogEntry)
+    , agents : RD.WebData (List Agent.Agent)
+    , logEntries : RD.WebData (List LogEntry.LogEntry)
     }
 
 
@@ -58,24 +58,24 @@ defaults : Model
 defaults =
     { clientId = ""
     , secretKey = ""
-    , accessToken = NotAsked
+    , accessToken = RD.NotAsked
     , showSecret = False
     , showEnvironmentChoices = False
     , selectedEnvironment = Nothing
-    , environments = NotAsked
+    , environments = RD.NotAsked
     , showSpaceChoices = False
     , selectedSpace = Nothing
-    , spaces = NotAsked
+    , spaces = RD.NotAsked
     , events = []
-    , subscriptionCreds = NotAsked
+    , subscriptionCreds = RD.NotAsked
     , expandedEventId = Nothing
     , timeZone = Time.utc
-    , agents = NotAsked
-    , logEntries = NotAsked
+    , agents = RD.NotAsked
+    , logEntries = RD.NotAsked
     }
 
 
-init : Decode.Value -> ( Model, Cmd Msg )
+init : D.Value -> ( Model, Cmd Msg )
 init flags =
     case InteropPorts.decodeFlags flags of
         Err _ ->
@@ -92,25 +92,25 @@ init flags =
 type Msg
     = Reset
     | OpenExternalLink String
-    | ClickedEvent EventId
-    | ReceivedDomainEvent (Result Decode.Error InteropDefinitions.ToElm)
+    | ClickedEvent EventId.EventId
+    | ReceivedDomainEvent (Result D.Error InteropDefinitions.ToElm)
     | TimeZone (Result () Time.Zone)
       -- Form
     | EnteredClientId String
     | EnteredSecretKey String
     | ToggleShowSecret
-    | SelectedEnvironment Environment
+    | SelectedEnvironment Environment.Environment
     | ToggleEnvironmentChoices
-    | SelectedSpace Space
+    | SelectedSpace Space.Space
     | ToggleSpaceChoices
       -- Http
     | SendAuthRequest
-    | GotAuthResponse (WebData Cred)
-    | GotEnvironmentsResponse (WebData (List Environment))
-    | GotSpacesResponse (WebData (List Space))
-    | GotSubscriptionCredsResponse (WebData SubscriptionCreds)
-    | GotAgentsResponse (WebData (List Agent))
-    | GotLogEntriesResponse (WebData (List LogEntry))
+    | GotAuthResponse (RD.WebData Api.Cred)
+    | GotEnvironmentsResponse (RD.WebData (List Environment.Environment))
+    | GotSpacesResponse (RD.WebData (List Space.Space))
+    | GotSubscriptionCredsResponse (RD.WebData PubNub.SubscriptionCreds)
+    | GotAgentsResponse (RD.WebData (List Agent.Agent))
+    | GotLogEntriesResponse (RD.WebData (List LogEntry.LogEntry))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -145,7 +145,7 @@ update msg model =
 
                 Err error ->
                     ( model
-                    , Decode.errorToString error
+                    , D.errorToString error
                         |> InteropDefinitions.ReportIssue
                         |> InteropPorts.fromElm
                     )
@@ -169,7 +169,7 @@ update msg model =
 
         SelectedEnvironment env ->
             let
-                maybeCred : Maybe Cred
+                maybeCred : Maybe Api.Cred
                 maybeCred =
                     RD.toMaybe model.accessToken
             in
@@ -189,7 +189,7 @@ update msg model =
 
         SelectedSpace space ->
             let
-                maybeCred : Maybe Cred
+                maybeCred : Maybe Api.Cred
                 maybeCred =
                     RD.toMaybe model.accessToken
             in
@@ -205,17 +205,17 @@ update msg model =
 
         GotAuthResponse response ->
             let
-                maybeCred : Maybe Cred
+                maybeCred : Maybe Api.Cred
                 maybeCred =
                     RD.toMaybe response
             in
             case response of
-                Success _ ->
+                RD.Success _ ->
                     ( { model | accessToken = response }
                     , Environment.list maybeCred GotEnvironmentsResponse
                     )
 
-                Failure _ ->
+                RD.Failure _ ->
                     ( { model | accessToken = response }, Cmd.none )
 
                 _ ->
@@ -240,7 +240,7 @@ update msg model =
         GotSubscriptionCredsResponse response ->
             ( { model | subscriptionCreds = response }
             , case response of
-                Success data ->
+                RD.Success data ->
                     case model.selectedSpace of
                         Just space ->
                             { accountId = data.accountId
@@ -356,7 +356,11 @@ viewAuthForm model =
         ]
 
 
-viewMeta : Environment -> Space -> Time.Zone -> Html Msg
+viewMeta :
+    Environment.Environment
+    -> Space.Space
+    -> Time.Zone
+    -> Html Msg
 viewMeta selectedEnvironment selectedSpace timeZone =
     let
         spaceName : String
@@ -456,15 +460,15 @@ viewMeta selectedEnvironment selectedSpace timeZone =
 viewSelectEnvironment : Model -> Html Msg
 viewSelectEnvironment model =
     case model.environments of
-        NotAsked ->
+        RD.NotAsked ->
             div [ Attr.class "w-full" ]
                 [ text "Not Asked" ]
 
-        Loading ->
+        RD.Loading ->
             div [ Attr.class "w-full" ]
                 [ text "Loading..." ]
 
-        Success environments ->
+        RD.Success environments ->
             div [ Attr.class "w-full" ]
                 [ label
                     [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
@@ -558,7 +562,7 @@ viewSelectEnvironment model =
                     ]
                 ]
 
-        Failure _ ->
+        RD.Failure _ ->
             div [ Attr.class "w-full" ]
                 [ text "Failure :(" ]
 
@@ -566,15 +570,15 @@ viewSelectEnvironment model =
 viewSelectSpace : Model -> Html Msg
 viewSelectSpace model =
     case model.spaces of
-        NotAsked ->
+        RD.NotAsked ->
             div [ Attr.class "w-full" ]
                 [ text "Not Asked" ]
 
-        Loading ->
+        RD.Loading ->
             div [ Attr.class "w-full" ]
                 [ text "Loading..." ]
 
-        Success spaces ->
+        RD.Success spaces ->
             div [ Attr.class "w-full" ]
                 [ label
                     [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
@@ -694,14 +698,14 @@ viewSelectSpace model =
                     ]
                 ]
 
-        Failure _ ->
+        RD.Failure _ ->
             div [ Attr.class "w-full" ] [ text "Failure :(" ]
 
 
 viewEventsTable : Model -> Html Msg
 viewEventsTable model =
     let
-        arrowIcon : EventId -> Html msg
+        arrowIcon : EventId.EventId -> Html msg
         arrowIcon incomingEventId =
             case model.expandedEventId of
                 Just previousEventId ->
@@ -927,7 +931,7 @@ viewEventsTable model =
                                                     ]
                                                 , pre []
                                                     [ code [ Attr.class "font-mono text-sm text-gray-800" ]
-                                                        [ text <| Encode.encode 2 event.payload ]
+                                                        [ text <| E.encode 2 event.payload ]
                                                     ]
                                                 ]
                                             ]
@@ -944,15 +948,15 @@ viewEventsTable model =
 viewAgentsTable : Model -> Html msg
 viewAgentsTable model =
     case model.agents of
-        NotAsked ->
+        RD.NotAsked ->
             div [ Attr.class "" ]
                 [ text "Not Asked" ]
 
-        Loading ->
+        RD.Loading ->
             div [ Attr.class "" ]
                 [ text "Loading..." ]
 
-        Success agents ->
+        RD.Success agents ->
             if List.length agents == 0 then
                 div [ Attr.class "" ]
                     [ text "No Agents" ]
@@ -1009,7 +1013,7 @@ viewAgentsTable model =
                         ]
                     ]
 
-        Failure _ ->
+        RD.Failure _ ->
             div [ Attr.class "" ]
                 [ text "Failure" ]
 
@@ -1020,19 +1024,19 @@ view model =
     , body =
         [ div [ Attr.class "w-4/5 m-auto mt-20" ]
             [ case model.accessToken of
-                NotAsked ->
+                RD.NotAsked ->
                     section [ mkTestAttribute "section-auth", Attr.class "" ]
                         [ div [ Attr.class "w-full" ]
                             [ viewAuthForm model ]
                         ]
 
-                Loading ->
+                RD.Loading ->
                     section [ mkTestAttribute "section-auth", Attr.class "" ]
                         [ div [ Attr.class "w-full" ]
                             [ text "Loading..." ]
                         ]
 
-                Success _ ->
+                RD.Success _ ->
                     section [ mkTestAttribute "section-selections", Attr.class "" ]
                         [ div [ Attr.class "flex space-x-20" ]
                             [ viewSelectEnvironment model
@@ -1040,7 +1044,7 @@ view model =
                             ]
                         ]
 
-                Failure _ ->
+                RD.Failure _ ->
                     section [ mkTestAttribute "section-auth", Attr.class "" ]
                         [ div []
                             [ text "Uh oh... Failed to authenticate :(" ]
@@ -1069,7 +1073,7 @@ view model =
 -- MAIN
 
 
-main : Program Decode.Value Model Msg
+main : Program D.Value Model Msg
 main =
     Browser.document
         { init = init
