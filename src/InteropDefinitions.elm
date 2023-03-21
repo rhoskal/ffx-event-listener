@@ -163,6 +163,7 @@ contextDecoder =
         |> optional "jobId" (TsDecode.maybe TsDecode.string) Nothing
         |> optional "fileId" (TsDecode.maybe TsDecode.string) Nothing
         |> optional "procedingEventId" (TsDecode.maybe TsDecode.string) Nothing
+        |> optional "actorId" (TsDecode.maybe TsDecode.string) Nothing
 
 
 environmentIdDecoder : TsDecode.Decoder EnvironmentId.EnvironmentId

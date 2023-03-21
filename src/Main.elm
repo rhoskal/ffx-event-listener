@@ -925,6 +925,18 @@ viewEventsTable model =
                                                                 [ text eventId ]
                                                         )
                                                         event.context.proceedingEventId
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
+                                                                [ text "@actor_id:" ]
+                                                        )
+                                                        event.context.actorId
+                                                    , Html.Extra.viewMaybe
+                                                        (\actorId ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text actorId ]
+                                                        )
+                                                        event.context.actorId
                                                     ]
                                                 , div [ Attr.class "mt-4 mb-1.5 text-gray-500 select-none" ]
                                                     [ span [] [ text "Payload" ]
