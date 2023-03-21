@@ -47,6 +47,7 @@ type alias EventContext =
     , jobId : Maybe String
     , fileId : Maybe String
     , proceedingEventId : Maybe String
+    , actorId : Maybe String
     }
 
 
