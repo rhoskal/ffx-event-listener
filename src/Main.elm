@@ -892,6 +892,18 @@ viewEventsTable model =
                                                     , Html.Extra.viewMaybe
                                                         (\_ ->
                                                             span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
+                                                                [ text "@sheet_slug:" ]
+                                                        )
+                                                        event.context.sheetSlug
+                                                    , Html.Extra.viewMaybe
+                                                        (\sheetSlug ->
+                                                            span [ Attr.class "text-sm text-gray-500 cursor-text" ]
+                                                                [ text sheetSlug ]
+                                                        )
+                                                        event.context.sheetSlug
+                                                    , Html.Extra.viewMaybe
+                                                        (\_ ->
+                                                            span [ Attr.class "text-sm font-semibold text-gray-800 select-none" ]
                                                                 [ text "@job_id:" ]
                                                         )
                                                         event.context.jobId
