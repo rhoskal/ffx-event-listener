@@ -141,7 +141,27 @@ update msg model =
         ReceivedDomainEvent result ->
             case result of
                 Ok (InteropDefinitions.PNDomainEvent domainEvent) ->
-                    ( { model | events = domainEvent :: model.events }, Cmd.none )
+                    let
+                        sortLatest : PubNub.Event -> PubNub.Event -> Order
+                        sortLatest a b =
+                            case compare (Time.posixToMillis a.createdAt) (Time.posixToMillis b.createdAt) of
+                                LT ->
+                                    GT
+
+                                EQ ->
+                                    EQ
+
+                                GT ->
+                                    LT
+                    in
+                    ( { model
+                        | events =
+                            domainEvent
+                                :: model.events
+                                |> List.sortWith sortLatest
+                      }
+                    , Cmd.none
+                    )
 
                 Err error ->
                     ( model
@@ -229,7 +249,9 @@ update msg model =
                 secretKey =
                     model.secretKey
             in
-            ( { model | accessToken = RD.Loading }, Api.login clientId secretKey GotAuthResponse )
+            ( { model | accessToken = RD.Loading }
+            , Api.login clientId secretKey GotAuthResponse
+            )
 
         GotEnvironmentsResponse response ->
             ( { model | environments = response }, Cmd.none )
