@@ -386,9 +386,7 @@ viewMeta selectedEnvironment selectedSpace timeZone =
 
         createdAt : String
         createdAt =
-            selectedSpace.createdAt
-                |> Maybe.map (Timestamp.toString timeZone)
-                |> Maybe.withDefault "[Date Unknown]"
+            Timestamp.toString timeZone selectedSpace.createdAt
 
         createdBy : String
         createdBy =
@@ -807,8 +805,7 @@ viewEventsTable model =
                                             , td
                                                 [ Attr.class "whitespace-nowrap p-2 text-sm text-gray-500" ]
                                                 [ event.createdAt
-                                                    |> Maybe.map (Timestamp.toString model.timeZone)
-                                                    |> Maybe.withDefault "Unknown DateTime"
+                                                    |> Timestamp.toString model.timeZone
                                                     |> text
                                                 ]
                                             , td

@@ -31,7 +31,7 @@ type alias Event =
     , topic : EventTopic.EventTopic
     , context : EventContext
     , payload : D.Value
-    , createdAt : Maybe Time.Posix
+    , createdAt : Time.Posix
     }
 
 
