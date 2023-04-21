@@ -20,7 +20,7 @@ type alias Space =
     , workbooksCount : Maybe Int
     , filesCount : Maybe Int
     , createdByUserName : Maybe String
-    , createdAt : Maybe Time.Posix
+    , createdAt : Time.Posix
     , spaceConfigId : String
     , environmentId : EnvironmentId.EnvironmentId
     , name : Maybe String
@@ -61,7 +61,7 @@ decoder =
         |> optional "workbooksCount" (D.maybe D.int) Nothing
         |> optional "filesCount" (D.maybe D.int) Nothing
         |> optional "createdByUserName" (D.maybe D.string) Nothing
-        |> optional "createdAt" (D.maybe Timestamp.decoder) Nothing
+        |> required "createdAt" Timestamp.decoder
         |> required "spaceConfigId" D.string
         |> required "environmentId" EnvironmentId.decoder
         |> optional "name" (D.maybe D.string) Nothing

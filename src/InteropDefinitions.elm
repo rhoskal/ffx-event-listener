@@ -103,7 +103,7 @@ domainEventDecoder =
         |> required "topic" topicDecoder
         |> required "context" contextDecoder
         |> required "payload" TsDecode.value
-        |> optional "createdAt" (TsDecode.maybe posixFromIso8601Decoder) Nothing
+        |> required "createdAt" posixFromIso8601Decoder
 
 
 eventIdDecoder : TsDecode.Decoder EventId.EventId
