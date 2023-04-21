@@ -14,6 +14,7 @@ suite =
         [ fuzz3 string string string "spaceDecoder maps required fields to a Space" <|
             \id spaceConfigId environmentId ->
                 [ ( "id", E.string id )
+                , ( "createdAt", E.string "2023-04-20T17:25:14.688Z" )
                 , ( "spaceConfigId", E.string spaceConfigId )
                 , ( "environmentId", E.string environmentId )
                 ]
@@ -23,6 +24,7 @@ suite =
         , fuzz3 string string string "spaceDecoder fails to map required fields to a Space" <|
             \id spaceConfigId environmentId ->
                 [ ( "id", E.string id )
+                , ( "createdAt", E.string "2023-04-20T17:25:14.688Z" )
                 , ( "spaceConfigId", E.string spaceConfigId )
                 , ( "environmentid", E.string environmentId )
                 ]
