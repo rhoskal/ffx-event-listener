@@ -113,7 +113,9 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Reset ->
-            ( defaults, Cmd.none )
+            ( { model | events = [] }
+            , Cmd.none
+            )
 
         OpenExternalLink externalLink ->
             ( model
