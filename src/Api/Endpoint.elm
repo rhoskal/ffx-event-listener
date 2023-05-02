@@ -1,6 +1,5 @@
 module Api.Endpoint exposing
     ( Endpoint
-    , auth
     , listAgents
     , listEnvironments
     , listLogEntries
@@ -58,12 +57,6 @@ url paths queryParams =
 
 
 -- ENDPOINTS
-
-
-auth : Endpoint
-auth =
-    url [ "auth", "access-token" ]
-        []
 
 
 listEnvironments : Endpoint

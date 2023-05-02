@@ -35,9 +35,8 @@ import Utils exposing (mkTestAttribute)
 
 
 type alias Model =
-    { clientId : String
-    , secretKey : String
-    , accessToken : RD.WebData Api.Cred
+    { secretKey : String
+    , maybeCred : Maybe Api.Cred
     , showSecret : Bool
     , showEnvironmentChoices : Bool
     , selectedEnvironment : Maybe Environment.Environment
@@ -56,9 +55,8 @@ type alias Model =
 
 defaults : Model
 defaults =
-    { clientId = ""
-    , secretKey = ""
-    , accessToken = RD.NotAsked
+    { secretKey = ""
+    , maybeCred = Nothing
     , showSecret = False
     , showEnvironmentChoices = False
     , selectedEnvironment = Nothing
@@ -96,16 +94,14 @@ type Msg
     | ReceivedDomainEvent (Result D.Error InteropDefinitions.ToElm)
     | TimeZone (Result () Time.Zone)
       -- Form
-    | EnteredClientId String
     | EnteredSecretKey String
     | ToggleShowSecret
     | SelectedEnvironment Environment.Environment
     | ToggleEnvironmentChoices
     | SelectedSpace Space.Space
     | ToggleSpaceChoices
+    | StoreCreds
       -- Http
-    | SendAuthRequest
-    | GotAuthResponse (RD.WebData Api.Cred)
     | GotEnvironmentsResponse (RD.WebData (List Environment.Environment))
     | GotSpacesResponse (RD.WebData (List Space.Space))
     | GotSubscriptionCredsResponse (RD.WebData PubNub.SubscriptionCreds)
@@ -130,13 +126,19 @@ update msg model =
             case model.expandedEventId of
                 Just previousEventId ->
                     if incomingEventId == previousEventId then
-                        ( { model | expandedEventId = Nothing }, Cmd.none )
+                        ( { model | expandedEventId = Nothing }
+                        , Cmd.none
+                        )
 
                     else
-                        ( { model | expandedEventId = Just incomingEventId }, Cmd.none )
+                        ( { model | expandedEventId = Just incomingEventId }
+                        , Cmd.none
+                        )
 
                 Nothing ->
-                    ( { model | expandedEventId = Just incomingEventId }, Cmd.none )
+                    ( { model | expandedEventId = Just incomingEventId }
+                    , Cmd.none
+                    )
 
         ReceivedDomainEvent result ->
             case result of
@@ -178,20 +180,21 @@ update msg model =
                 Err () ->
                     ( model, Cmd.none )
 
-        EnteredClientId clientId ->
-            ( { model | clientId = clientId }, Cmd.none )
-
         EnteredSecretKey secretKey ->
-            ( { model | secretKey = secretKey }, Cmd.none )
+            ( { model | secretKey = secretKey }
+            , Cmd.none
+            )
 
         ToggleShowSecret ->
-            ( { model | showSecret = not model.showSecret }, Cmd.none )
+            ( { model | showSecret = not model.showSecret }
+            , Cmd.none
+            )
 
         SelectedEnvironment env ->
             let
                 maybeCred : Maybe Api.Cred
                 maybeCred =
-                    RD.toMaybe model.accessToken
+                    model.maybeCred
             in
             ( { model
                 | selectedEnvironment = Just env
@@ -205,13 +208,15 @@ update msg model =
             )
 
         ToggleEnvironmentChoices ->
-            ( { model | showEnvironmentChoices = not model.showEnvironmentChoices }, Cmd.none )
+            ( { model | showEnvironmentChoices = not model.showEnvironmentChoices }
+            , Cmd.none
+            )
 
         SelectedSpace space ->
             let
                 maybeCred : Maybe Api.Cred
                 maybeCred =
-                    RD.toMaybe model.accessToken
+                    model.maybeCred
             in
             ( { model
                 | selectedSpace = Just space
@@ -221,43 +226,30 @@ update msg model =
             )
 
         ToggleSpaceChoices ->
-            ( { model | showSpaceChoices = not model.showSpaceChoices }, Cmd.none )
+            ( { model | showSpaceChoices = not model.showSpaceChoices }
+            , Cmd.none
+            )
 
-        GotAuthResponse response ->
+        StoreCreds ->
             let
                 maybeCred : Maybe Api.Cred
                 maybeCred =
-                    RD.toMaybe response
+                    Result.toMaybe (Api.credParser model.secretKey)
             in
-            case response of
-                RD.Success _ ->
-                    ( { model | accessToken = response }
-                    , Environment.list maybeCred GotEnvironmentsResponse
-                    )
-
-                RD.Failure _ ->
-                    ( { model | accessToken = response }, Cmd.none )
-
-                _ ->
-                    ( model, Cmd.none )
-
-        SendAuthRequest ->
-            let
-                clientId =
-                    model.clientId
-
-                secretKey =
-                    model.secretKey
-            in
-            ( { model | accessToken = RD.Loading }
-            , Api.login clientId secretKey GotAuthResponse
+            ( { model | maybeCred = maybeCred }
+            , Environment.list maybeCred GotEnvironmentsResponse
+              -- Store in Local Storage
             )
 
         GotEnvironmentsResponse response ->
-            ( { model | environments = response }, Cmd.none )
+            ( { model | environments = response }
+            , Cmd.none
+            )
 
         GotSpacesResponse response ->
-            ( { model | spaces = response }, Cmd.none )
+            ( { model | spaces = response }
+            , Cmd.none
+            )
 
         GotSubscriptionCredsResponse response ->
             ( { model | subscriptionCreds = response }
@@ -281,10 +273,14 @@ update msg model =
             )
 
         GotAgentsResponse response ->
-            ( { model | agents = response }, Cmd.none )
+            ( { model | agents = response }
+            , Cmd.none
+            )
 
         GotLogEntriesResponse response ->
-            ( { model | logEntries = response }, Cmd.none )
+            ( { model | logEntries = response }
+            , Cmd.none
+            )
 
 
 
@@ -304,77 +300,57 @@ subscriptions _ =
 viewAuthForm : Model -> Html Msg
 viewAuthForm model =
     form
-        [ Attr.class ""
-        , Events.onSubmit SendAuthRequest
+        [ Attr.class "grid grid-cols-1 gap-y-6"
+        , Events.onSubmit StoreCreds
         ]
-        [ div [ Attr.class "grid grid-cols-2 gap-y-6 gap-x-8" ]
-            [ div [ Attr.class "" ]
+        [ div []
+            [ div [ Attr.class "flex items-center justify-between" ]
                 [ label
                     [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
-                    , Attr.for "client-id"
+                    , Attr.for "secret-key"
                     ]
-                    [ text "Client Id" ]
-                , div [ Attr.class "mt-2.5" ]
-                    [ input
-                        [ mkTestAttribute "input-client-id"
-                        , Attr.autocomplete False
-                        , Attr.autofocus True
-                        , Attr.class "block w-full rounded-md border-0 py-2 px-3.5 text-sm leading-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                        , Attr.id "client-id"
-                        , Attr.name "client-id"
-                        , Events.onInput EnteredClientId
-                        ]
-                        []
+                    [ text "Secret Key" ]
+                , div
+                    [ Attr.class "cursor-pointer text-gray-700"
+                    , Events.onClick ToggleShowSecret
                     ]
-                ]
-            , div [ Attr.class "" ]
-                [ div [ Attr.class "flex items-center justify-between" ]
-                    [ label
-                        [ Attr.class "block text-sm font-semibold leading-6 text-gray-900"
-                        , Attr.for "secret-key"
-                        ]
-                        [ text "Secret" ]
-                    , div
-                        [ Attr.class "cursor-pointer text-gray-700"
-                        , Events.onClick ToggleShowSecret
-                        ]
-                        [ if model.showSecret then
-                            Icon.defaults
-                                |> Icon.withSize 18
-                                |> Icon.eyeClose
+                    [ if model.showSecret then
+                        Icon.defaults
+                            |> Icon.withSize 18
+                            |> Icon.eyeClose
 
-                          else
-                            Icon.defaults
-                                |> Icon.withSize 18
-                                |> Icon.eyeOpen
-                        ]
+                      else
+                        Icon.defaults
+                            |> Icon.withSize 18
+                            |> Icon.eyeOpen
                     ]
-                , div [ Attr.class "mt-2.5" ]
-                    [ input
-                        [ mkTestAttribute "input-secret-key"
-                        , Attr.class "block w-full rounded-md border-0 py-2 px-3.5 text-sm leading-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
-                        , Attr.name "secret-key"
-                        , Attr.id "secret-key"
-                        , Attr.autocomplete False
-                        , Attr.type_
-                            (if model.showSecret then
-                                "text"
+                ]
+            , div [ Attr.class "mt-1.5" ]
+                [ input
+                    [ mkTestAttribute "input-secret-key"
+                    , Attr.class "block w-full rounded-md border-0 py-2 px-3.5 text-sm leading-6 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600"
+                    , Attr.name "secret-key"
+                    , Attr.id "secret-key"
+                    , Attr.autocomplete False
+                    , Attr.placeholder "sk_asdf1234"
+                    , Attr.type_
+                        (if model.showSecret then
+                            "text"
 
-                             else
-                                "password"
-                            )
-                        , Events.onInput EnteredSecretKey
-                        ]
-                        []
+                         else
+                            "password"
+                        )
+                    , Events.onInput EnteredSecretKey
                     ]
+                    []
                 ]
-            , button
-                [ mkTestAttribute "btn-auth-submit"
-                , Attr.class "col-span-full inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm bg-indigo-600 text-white"
-                , Attr.type_ "submit"
-                ]
-                [ text "Authenticate" ]
             ]
+        , button
+            [ mkTestAttribute "btn-auth-submit"
+            , Attr.class "col-span-full inline-flex items-center justify-center rounded-md px-3 py-2 text-sm font-semibold shadow-sm bg-indigo-600 text-white"
+            , Attr.type_ "submit"
+            ]
+            [ text "Authenticate" ]
         ]
 
 
@@ -1066,47 +1042,52 @@ view model =
     { title = "Crispy Critters"
     , body =
         [ div [ Attr.class "w-4/5 m-auto mt-20" ]
-            [ case model.accessToken of
-                RD.NotAsked ->
-                    section [ mkTestAttribute "section-auth", Attr.class "" ]
-                        [ div [ Attr.class "w-full" ]
-                            [ viewAuthForm model ]
+            [ case model.maybeCred of
+                Just _ ->
+                    section
+                        [ mkTestAttribute "section-selections"
+                        , Attr.class ""
                         ]
-
-                RD.Loading ->
-                    section [ mkTestAttribute "section-auth", Attr.class "" ]
-                        [ div [ Attr.class "w-full" ]
-                            [ text "Loading..." ]
-                        ]
-
-                RD.Success _ ->
-                    section [ mkTestAttribute "section-selections", Attr.class "" ]
                         [ div [ Attr.class "flex space-x-20" ]
                             [ viewSelectEnvironment model
                             , viewSelectSpace model
                             ]
                         ]
 
-                RD.Failure _ ->
-                    section [ mkTestAttribute "section-auth", Attr.class "" ]
-                        [ div []
-                            [ text "Uh oh... Failed to authenticate :(" ]
+                Nothing ->
+                    section
+                        [ mkTestAttribute "section-auth"
+                        , Attr.class ""
+                        ]
+                        [ div [ Attr.class "w-full" ]
+                            [ viewAuthForm model ]
                         ]
             , case model.selectedEnvironment of
                 Just env ->
                     case model.selectedSpace of
                         Just space ->
-                            section [ mkTestAttribute "section-data", Attr.class "" ]
+                            section
+                                [ mkTestAttribute "section-data"
+                                , Attr.class ""
+                                ]
                                 [ viewMeta env space model.timeZone
                                 , viewAgentsTable model
                                 , viewEventsTable model
                                 ]
 
                         Nothing ->
-                            section [ mkTestAttribute "section-data", Attr.class "" ] []
+                            section
+                                [ mkTestAttribute "section-data"
+                                , Attr.class ""
+                                ]
+                                []
 
                 Nothing ->
-                    section [ mkTestAttribute "section-data", Attr.class "" ] []
+                    section
+                        [ mkTestAttribute "section-data"
+                        , Attr.class ""
+                        ]
+                        []
             ]
         ]
     }
