@@ -10,28 +10,31 @@ import Json.Decode as D
 
 
 type EventTopic
-    = ActionTriggered
+    = AgentCreated
+    | AgentDeleted
+    | AgentUpdated
+    | CommitCreated
+    | CommitUpdated
+    | FileCreated
+    | FileDeleted
+    | FileUpdated
     | JobCompleted
+    | JobCreated
     | JobDeleted
     | JobFailed
-    | JobStarted
     | JobUpdated
-    | JobWaiting
-    | RecordsCreated
-    | RecordsDeleted
-    | RecordsUpdated
-    | SheetValidated
-    | SpaceAdded
-    | SpaceRemoved
-    | UploadCompleted
-    | UploadFailed
-    | UploadStarted
-    | UserAdded
-    | UserOffline
-    | UserOnline
-    | UserRemoved
-    | WorkbookAdded
-    | WorkbookRemoved
+    | LayerCreated
+    | RecordCreated
+    | RecordDeleted
+    | RecordUpdated
+    | SheetCreated
+    | SheetDeleted
+    | SheetUpdated
+    | SpaceCreated
+    | SpaceDeleted
+    | WorkbookCreated
+    | WorkbookDeleted
+    | WorkbookUpdated
 
 
 
@@ -44,11 +47,35 @@ decoder =
         |> D.andThen
             (\topic ->
                 case topic of
-                    "action:triggered" ->
-                        D.succeed ActionTriggered
+                    "agent:created" ->
+                        D.succeed AgentCreated
+
+                    "agent:deleted" ->
+                        D.succeed AgentDeleted
+
+                    "agent:updated" ->
+                        D.succeed AgentUpdated
+
+                    "commit:created" ->
+                        D.succeed CommitCreated
+
+                    "commit:updated" ->
+                        D.succeed CommitUpdated
+
+                    "file:created" ->
+                        D.succeed FileCreated
+
+                    "file:deleted" ->
+                        D.succeed FileDeleted
+
+                    "file:updated" ->
+                        D.succeed FileUpdated
 
                     "job:completed" ->
                         D.succeed JobCompleted
+
+                    "job:created" ->
+                        D.succeed JobCreated
 
                     "job:deleted" ->
                         D.succeed JobDeleted
@@ -56,59 +83,44 @@ decoder =
                     "job:failed" ->
                         D.succeed JobFailed
 
-                    "job:started" ->
-                        D.succeed JobStarted
-
                     "job:updated" ->
                         D.succeed JobUpdated
 
-                    "job:waiting" ->
-                        D.succeed JobWaiting
+                    "layer:created" ->
+                        D.succeed LayerCreated
 
-                    "records:created" ->
-                        D.succeed RecordsCreated
+                    "record:created" ->
+                        D.succeed RecordCreated
 
-                    "records:deleted" ->
-                        D.succeed RecordsDeleted
+                    "record:deleted" ->
+                        D.succeed RecordDeleted
 
-                    "records:updated" ->
-                        D.succeed RecordsUpdated
+                    "record:updated" ->
+                        D.succeed RecordUpdated
 
-                    "sheet:validated" ->
-                        D.succeed SheetValidated
+                    "sheet:created" ->
+                        D.succeed SheetCreated
 
-                    "space:added" ->
-                        D.succeed SpaceAdded
+                    "sheet:deleted" ->
+                        D.succeed SheetDeleted
 
-                    "space:removed" ->
-                        D.succeed SpaceRemoved
+                    "sheet:updated" ->
+                        D.succeed SheetUpdated
 
-                    "upload:completed" ->
-                        D.succeed UploadCompleted
+                    "space:created" ->
+                        D.succeed SpaceCreated
 
-                    "upload:failed" ->
-                        D.succeed UploadFailed
+                    "space:deleted" ->
+                        D.succeed SpaceDeleted
 
-                    "upload:started" ->
-                        D.succeed UploadStarted
+                    "workbook:created" ->
+                        D.succeed WorkbookCreated
 
-                    "user:added" ->
-                        D.succeed UserAdded
+                    "workbook:deleted" ->
+                        D.succeed WorkbookDeleted
 
-                    "user:offline" ->
-                        D.succeed UserOffline
-
-                    "user:online" ->
-                        D.succeed UserOnline
-
-                    "user:removed" ->
-                        D.succeed UserRemoved
-
-                    "workbook:added" ->
-                        D.succeed WorkbookAdded
-
-                    "workbook:removed" ->
-                        D.succeed WorkbookRemoved
+                    "workbook:updated" ->
+                        D.succeed WorkbookUpdated
 
                     _ ->
                         D.fail ("Unknown event topic encountered: " ++ topic)
@@ -122,11 +134,35 @@ decoder =
 toString : EventTopic -> String
 toString topic =
     case topic of
-        ActionTriggered ->
-            "action:triggered"
+        AgentCreated ->
+            "agent:created"
+
+        AgentDeleted ->
+            "agent:deleted"
+
+        AgentUpdated ->
+            "agent:updated"
+
+        CommitCreated ->
+            "commit:created"
+
+        CommitUpdated ->
+            "commit:updated"
+
+        FileCreated ->
+            "file:created"
+
+        FileDeleted ->
+            "file:deleted"
+
+        FileUpdated ->
+            "file:updated"
 
         JobCompleted ->
             "job:completed"
+
+        JobCreated ->
+            "job:created"
 
         JobDeleted ->
             "job:deleted"
@@ -134,59 +170,44 @@ toString topic =
         JobFailed ->
             "job:failed"
 
-        JobStarted ->
-            "job:started"
-
         JobUpdated ->
             "job:updated"
 
-        JobWaiting ->
-            "job:waiting"
+        LayerCreated ->
+            "layer:created"
 
-        RecordsCreated ->
-            "records:created"
+        RecordCreated ->
+            "record:created"
 
-        RecordsDeleted ->
-            "records:deleted"
+        RecordDeleted ->
+            "record:deleted"
 
-        RecordsUpdated ->
-            "records:updated"
+        RecordUpdated ->
+            "record:updated"
 
-        SheetValidated ->
-            "sheet:validated"
+        SheetCreated ->
+            "sheet:created"
 
-        SpaceAdded ->
-            "space:added"
+        SheetDeleted ->
+            "sheet:deleted"
 
-        SpaceRemoved ->
-            "space:removed"
+        SheetUpdated ->
+            "sheet:updated"
 
-        UploadCompleted ->
-            "upload:completed"
+        SpaceCreated ->
+            "space:created"
 
-        UploadFailed ->
-            "upload:failed"
+        SpaceDeleted ->
+            "space:deleted"
 
-        UploadStarted ->
-            "upload:started"
+        WorkbookCreated ->
+            "workbook:created"
 
-        UserAdded ->
-            "user:added"
+        WorkbookDeleted ->
+            "workbook:deleted"
 
-        UserOffline ->
-            "user:offline"
-
-        UserOnline ->
-            "user:online"
-
-        UserRemoved ->
-            "user:removed"
-
-        WorkbookAdded ->
-            "workbook:added"
-
-        WorkbookRemoved ->
-            "workbook:removed"
+        WorkbookUpdated ->
+            "workbook:updated"
 
 
 toHtml : EventTopic -> Html.Html msg

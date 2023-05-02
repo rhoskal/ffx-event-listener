@@ -27,7 +27,7 @@ toString domain =
             "Space"
 
         WorkbookDomain ->
-            "Workspace"
+            "Workbook"
 
 
 toHtml : EventDomain -> Html.Html msg
