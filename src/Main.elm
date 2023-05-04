@@ -19,7 +19,6 @@ import InteropDefinitions
 import InteropPorts
 import Json.Decode as D
 import Json.Encode as E
-import LogEntry
 import PubNub
 import RemoteData as RD
 import Space
@@ -49,7 +48,6 @@ type alias Model =
     , expandedEventId : Maybe EventId.EventId
     , timeZone : Time.Zone
     , agents : RD.WebData (List Agent.Agent)
-    , logEntries : RD.WebData (List LogEntry.LogEntry)
     }
 
 
@@ -69,7 +67,6 @@ defaults =
     , expandedEventId = Nothing
     , timeZone = Time.utc
     , agents = RD.NotAsked
-    , logEntries = RD.NotAsked
     }
 
 
@@ -106,7 +103,6 @@ type Msg
     | GotSpacesResponse (RD.WebData (List Space.Space))
     | GotSubscriptionCredsResponse (RD.WebData PubNub.SubscriptionCreds)
     | GotAgentsResponse (RD.WebData (List Agent.Agent))
-    | GotLogEntriesResponse (RD.WebData (List LogEntry.LogEntry))
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -205,7 +201,6 @@ update msg model =
             , Cmd.batch
                 [ Space.list env.id maybeCred GotSpacesResponse
                 , Agent.list env.id maybeCred GotAgentsResponse
-                , LogEntry.list env.id maybeCred GotLogEntriesResponse
                 ]
             )
 
@@ -276,11 +271,6 @@ update msg model =
 
         GotAgentsResponse response ->
             ( { model | agents = response }
-            , Cmd.none
-            )
-
-        GotLogEntriesResponse response ->
-            ( { model | logEntries = response }
             , Cmd.none
             )
 

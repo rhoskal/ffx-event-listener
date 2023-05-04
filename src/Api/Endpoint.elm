@@ -2,7 +2,6 @@ module Api.Endpoint exposing
     ( Endpoint
     , listAgents
     , listEnvironments
-    , listLogEntries
     , listSpaces
     , pubNubAuth
     , request
@@ -51,7 +50,7 @@ unwrap (Endpoint str) =
 
 url : List String -> List Url.Builder.QueryParameter -> Endpoint
 url paths queryParams =
-    Url.Builder.crossOrigin "https://api.x.flatfile.com/v1" paths queryParams
+    Url.Builder.crossOrigin "https://platform.flatfile.com/api/v1" paths queryParams
         |> Endpoint
 
 
@@ -77,19 +76,11 @@ listSpaces environmentId =
 
 pubNubAuth : String -> Endpoint
 pubNubAuth spaceId =
-    url [ "spaces", spaceId, "subscription" ]
-        []
+    url [ "subscription" ]
+        [ Url.Builder.string "spaceId" spaceId ]
 
 
 listAgents : String -> Endpoint
 listAgents environmentId =
-    url [ "environments", environmentId, "agents" ]
-        []
-
-
-listLogEntries : String -> Endpoint
-listLogEntries environmentId =
-    url [ "environments", environmentId, "logs" ]
-        [ Url.Builder.int "pageSize" 1
-        , Url.Builder.int "pageNumber" 1
-        ]
+    url [ "agents" ]
+        [ Url.Builder.string "environmentId" environmentId ]
