@@ -372,7 +372,7 @@ viewMeta selectedEnvironment selectedSpace timeZone =
 
         spaceConfigId : String
         spaceConfigId =
-            selectedSpace.spaceConfigId
+            Maybe.withDefault "[No Space Config]" selectedSpace.spaceConfigId
 
         createdAt : String
         createdAt =
