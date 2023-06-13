@@ -16,6 +16,7 @@ suite =
                 [ ( "id", E.string id )
                 , ( "accountId", E.string accountId )
                 , ( "name", E.string name )
+                , ( "isProd", E.bool False )
                 ]
                     |> E.object
                     |> D.decodeValue Environment.decoder

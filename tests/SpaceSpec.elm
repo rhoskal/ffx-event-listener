@@ -15,6 +15,7 @@ suite =
             \id spaceConfigId environmentId ->
                 [ ( "id", E.string id )
                 , ( "createdAt", E.string "2023-04-20T17:25:14.688Z" )
+                , ( "updatedAt", E.string "2023-04-20T17:25:14.688Z" )
                 , ( "spaceConfigId", E.string spaceConfigId )
                 , ( "environmentId", E.string environmentId )
                 ]
