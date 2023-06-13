@@ -370,10 +370,6 @@ viewMeta selectedEnvironment selectedSpace timeZone =
         environmentName =
             selectedEnvironment.name
 
-        spaceConfigId : String
-        spaceConfigId =
-            Maybe.withDefault "[No Space Config]" selectedSpace.spaceConfigId
-
         createdAt : String
         createdAt =
             Timestamp.toString timeZone selectedSpace.createdAt
@@ -395,8 +391,6 @@ viewMeta selectedEnvironment selectedSpace timeZone =
                     [ Icon.defaults
                         |> Icon.withSize 20
                         |> Icon.version
-                    , span [ Attr.class "ml-1.5" ]
-                        [ text spaceConfigId ]
                     ]
                 , div [ Attr.class "inline-flex items-center text-sm text-gray-300" ]
                     [ Icon.defaults

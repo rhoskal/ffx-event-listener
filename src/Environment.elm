@@ -16,6 +16,7 @@ type alias Environment =
     { id : EnvironmentId.EnvironmentId
     , accountId : String
     , name : String
+    , isProd : Bool
     }
 
 
@@ -46,3 +47,4 @@ decoder =
         |> required "id" EnvironmentId.decoder
         |> required "accountId" D.string
         |> required "name" D.string
+        |> required "isProd" D.bool

@@ -15,6 +15,9 @@ type EventTopic
     | AgentUpdated
     | CommitCreated
     | CommitUpdated
+    | DocumentCreated
+    | DocumentDeleted
+    | DocumentUpdated
     | FileCreated
     | FileDeleted
     | FileUpdated
@@ -22,6 +25,9 @@ type EventTopic
     | JobCreated
     | JobDeleted
     | JobFailed
+    | JobOutcomeAck
+    | JobReady
+    | JobScheduled
     | JobUpdated
     | LayerCreated
     | RecordCreated
@@ -32,13 +38,10 @@ type EventTopic
     | SheetUpdated
     | SpaceCreated
     | SpaceDeleted
+    | SpaceUpdated
     | WorkbookCreated
     | WorkbookDeleted
     | WorkbookUpdated
-
-
-
--- JSON
 
 
 decoder : D.Decoder EventTopic
@@ -62,6 +65,15 @@ decoder =
                     "commit:updated" ->
                         D.succeed CommitUpdated
 
+                    "document:created" ->
+                        D.succeed DocumentCreated
+
+                    "document:deleted" ->
+                        D.succeed DocumentDeleted
+
+                    "document:updated" ->
+                        D.succeed DocumentUpdated
+
                     "file:created" ->
                         D.succeed FileCreated
 
@@ -82,6 +94,15 @@ decoder =
 
                     "job:failed" ->
                         D.succeed JobFailed
+
+                    "job:outcome:outcome-acknowledged" ->
+                        D.succeed JobOutcomeAck
+
+                    "job:ready" ->
+                        D.succeed JobReady
+
+                    "job:scheduled" ->
+                        D.succeed JobScheduled
 
                     "job:updated" ->
                         D.succeed JobUpdated
@@ -112,6 +133,9 @@ decoder =
 
                     "space:deleted" ->
                         D.succeed SpaceDeleted
+
+                    "space:updated" ->
+                        D.succeed SpaceUpdated
 
                     "workbook:created" ->
                         D.succeed WorkbookCreated
@@ -149,6 +173,15 @@ toString topic =
         CommitUpdated ->
             "commit:updated"
 
+        DocumentCreated ->
+            "document:created"
+
+        DocumentDeleted ->
+            "document:deleted"
+
+        DocumentUpdated ->
+            "document:updated"
+
         FileCreated ->
             "file:created"
 
@@ -169,6 +202,15 @@ toString topic =
 
         JobFailed ->
             "job:failed"
+
+        JobOutcomeAck ->
+            "job:outcome-acknowledged"
+
+        JobReady ->
+            "job:ready"
+
+        JobScheduled ->
+            "job:scheduled"
 
         JobUpdated ->
             "job:updated"
@@ -199,6 +241,9 @@ toString topic =
 
         SpaceDeleted ->
             "space:deleted"
+
+        SpaceUpdated ->
+            "space:updated"
 
         WorkbookCreated ->
             "workbook:created"

@@ -21,7 +21,7 @@ type alias Space =
     , filesCount : Maybe Int
     , createdByUserName : Maybe String
     , createdAt : Time.Posix
-    , spaceConfigId : Maybe String
+    , updatedAt : Time.Posix
     , environmentId : EnvironmentId.EnvironmentId
     , name : Maybe String
     }
@@ -62,6 +62,6 @@ decoder =
         |> optional "filesCount" (D.maybe D.int) Nothing
         |> optional "createdByUserName" (D.maybe D.string) Nothing
         |> required "createdAt" Timestamp.decoder
-        |> required "spaceConfigId" (D.maybe D.string)
+        |> required "updatedAt" Timestamp.decoder
         |> required "environmentId" EnvironmentId.decoder
         |> optional "name" (D.maybe D.string) Nothing

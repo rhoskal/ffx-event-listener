@@ -70,6 +70,7 @@ listSpaces environmentId =
         [ Url.Builder.string "environmentId" environmentId
         , Url.Builder.string "sortDirection" "desc"
         , Url.Builder.string "sortField" "createdAt"
+        , Url.Builder.int "pageNumber" 1
         , Url.Builder.int "pageSize" 10
         ]
 
