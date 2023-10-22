@@ -1,9 +1,23 @@
 {
-  "name": "crisy-critters",
+  "name": "ffx-event-listener",
   "private": true,
   "version": "0.0.0",
-  "license": "UNLICENSED",
-  "engines": "16.x",
+  "license": "BSD-3-Clause",
+  "keywords": [
+    "flatfile"
+  ],
+  "author": "Oberan (https://oberan.dev)",
+  "homepage": "https://github.com/oberandev/ffx-event-listener#readme",
+  "bugs": {
+    "url": "https://github.com/oberandev/ffx-event-listener/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/oberandev/ffx-event-listener.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
@@ -19,8 +33,7 @@
     "preview": "make preview",
     "start": "make run",
     "test": "make test",
-    "test:elm": "make test-elm",
-    "test:ts": "make test-ts"
+    "test:elm": "make test-elm"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.2",

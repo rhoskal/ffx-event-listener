@@ -40,26 +40,26 @@ clean: ## Remove build artifacts
 
 .PHONY: build
 build: compile-ts ## Make a production build
-	yarn vite build
+	pnpm vite build
 
 .PHONY: compile-ts
-compile-ts: ## Run Typscript compiler
-	make elm-ports && yarn tsc
+compile-ts: elm-ports ## Run Typscript compiler
+	pnpm tsc
 
 # Development targets
 # -------------------
 
 .PHONY: deps
 deps: ## Install all dependencies
-	yarn install
+	pnpm install
 
 .PHONY: preview
 preview: build ## See what the production build will look like
-	yarn vite preview --https
+	pnpm vite preview --https
 
 .PHONY: run
 run: ## Run web app
-	yarn vite --https --port 4000
+	pnpm vite --https --port 4000
 
 # Check, lint, format and test targets
 # ------------------------------------
@@ -68,15 +68,15 @@ run: ## Run web app
 format: format-elm format-ts ## Format everything
 
 .PHONY: format-elm
-format-elm: ## Format elm files
+format-elm: ## Format Elm files
 	elm-format src/ review/ tests/ --yes
 
 .PHONY: format-ts
-format-ts: ## Format typescript files
-	yarn prettier --write '**/*.ts'
+format-ts: ## Format Typescript files
+	pnpm prettier --write 'src/**/*.{css,json,js,ts,mjs,mts}'
 
 .PHONY: lint
-lint: lint-elm lint-ts ## Lint elm & typescript files
+lint: lint-elm lint-ts ## Lint Elm & Typescript files
 
 .PHONY: lint-elm
 lint-elm: ## Lint elm files
@@ -84,30 +84,26 @@ lint-elm: ## Lint elm files
 
 .PHONY: lint-ts
 lint-ts: ## Lint ts files
-	yarn eslint '**/*.ts'
+	pnpm eslint 'src/**/*.{js,ts,mjs,mts}'
 
 .PHONY: lint-elm-fix
-lint-elm-fix: ## Lint fix all elm files
+lint-elm-fix: ## Lint fix all Elm files
 	elm-review --fix-all
 
 .PHONY: lint-ts-fix
-lint-ts-fix: ## Lint fix all typescript files
-	yarn eslint '**/*.ts' --fix
+lint-ts-fix: ## Lint fix all Typescript files
+	pnpm eslint 'src/**/*.{js,ts,mjs,mts}' --fix
 
 .PHONY: test
 test: test-elm ## Test code
 
 .PHONY: test-elm
-test-elm: ## Test elm code
+test-elm: ## Test Elm code
 	elm-test
-
-.PHONY: test-ts
-test-ts: ## Test elm code
-	yarn jest
 
 # Other targets
 # -------------------
 
 .PHONY: elm-ports
 elm-ports: ## Generate type declaration file for typescript interop
-	yarn elm-ts-interop -o src/Main.elm.d.ts
+	pnpm elm-ts-interop -o src/Main.elm.d.ts

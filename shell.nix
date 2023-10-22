@@ -9,8 +9,7 @@ let
     pkgs.elmPackages.elm-review
     pkgs.elmPackages.elm-test
     pkgs.nixfmt
-    pkgs.nodejs-18_x
-    pkgs.yarn
+    pkgs.nodejs_20
   ];
 
   inputs = basePackages;
