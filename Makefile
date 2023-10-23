@@ -1,9 +1,9 @@
 # Build configuration
 # -------------------
 
-APP_NAME = `node -p "require('./package.json').name"`
-GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
-GIT_REVISION = `git rev-parse HEAD`
+APP_NAME := `node -p "require('./package.json').name"`
+GIT_BRANCH :=`git rev-parse --abbrev-ref HEAD`
+GIT_REVISION := `git rev-parse HEAD`
 
 # Introspection targets
 # ---------------------
@@ -36,7 +36,7 @@ targets:
 
 .PHONY: clean
 clean: ## Remove build artifacts
-	rm -rf dist
+	pnpm rimraf dist
 
 .PHONY: build
 build: compile-ts ## Make a production build
@@ -76,7 +76,7 @@ format-ts: ## Format Typescript files
 	pnpm prettier --write 'src/**/*.{css,json,js,ts,mjs,mts}'
 
 .PHONY: lint
-lint: lint-elm lint-ts ## Lint Elm & Typescript files
+lint: lint-elm lint-ts ## Lint everything
 
 .PHONY: lint-elm
 lint-elm: ## Lint elm files
@@ -85,6 +85,9 @@ lint-elm: ## Lint elm files
 .PHONY: lint-ts
 lint-ts: ## Lint ts files
 	pnpm eslint 'src/**/*.{js,ts,mjs,mts}'
+
+.PHONY: lint-fix
+lint-fix: lint-elm-fix lint-ts-fix ## Lint fix everything
 
 .PHONY: lint-elm-fix
 lint-elm-fix: ## Lint fix all Elm files
@@ -100,6 +103,10 @@ test: test-elm ## Test code
 .PHONY: test-elm
 test-elm: ## Test Elm code
 	elm-test
+
+.PHONY: test-e2e
+test-e2e: ## Test e2e
+	echo "playwright"
 
 # Other targets
 # -------------------

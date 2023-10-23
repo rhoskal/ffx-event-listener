@@ -15,9 +15,15 @@ dist-ssr
 .envrc
 
 # Editors
-.vscode
 .idea
 .nova
+
+# IDE - VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
 
 # Misc
 .DS_Store
