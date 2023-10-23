@@ -59,7 +59,7 @@ preview: build ## See what the production build will look like
 
 .PHONY: run
 run: ## Run web app
-	pnpm vite --https --port 4000
+	pnpm vite --https --port 4001
 
 # Check, lint, format and test targets
 # ------------------------------------
@@ -73,7 +73,7 @@ format-elm: ## Format Elm files
 
 .PHONY: format-ts
 format-ts: ## Format Typescript files
-	pnpm prettier --write 'src/**/*.{css,json,js,ts,mjs,mts}'
+	pnpm prettier --write '{e2e,src}/**/*.{css,json,js,ts,mjs,mts}'
 
 .PHONY: lint
 lint: lint-elm lint-ts ## Lint everything
@@ -84,7 +84,7 @@ lint-elm: ## Lint elm files
 
 .PHONY: lint-ts
 lint-ts: ## Lint ts files
-	pnpm eslint 'src/**/*.{js,ts,mjs,mts}'
+	pnpm eslint '{e2e,src}/**/*.{js,ts,mjs,mts}'
 
 .PHONY: lint-fix
 lint-fix: lint-elm-fix lint-ts-fix ## Lint fix everything
@@ -95,7 +95,7 @@ lint-elm-fix: ## Lint fix all Elm files
 
 .PHONY: lint-ts-fix
 lint-ts-fix: ## Lint fix all Typescript files
-	pnpm eslint 'src/**/*.{js,ts,mjs,mts}' --fix
+	pnpm eslint '{e2e,src}/**/*.{js,ts,mjs,mts}' --fix
 
 .PHONY: test
 test: test-elm ## Test code
@@ -105,8 +105,12 @@ test-elm: ## Test Elm code
 	elm-test
 
 .PHONY: test-e2e
-test-e2e: ## Test e2e
-	echo "playwright"
+test-e2e: ## Test e2e w/o UI
+	NODE_ENV=test pnpm playwright test
+
+.PHONY: test-e2e-ui
+test-e2e-ui: ## Test e2e with UI
+	NODE_ENV=test pnpm playwright test --ui
 
 # Other targets
 # -------------------

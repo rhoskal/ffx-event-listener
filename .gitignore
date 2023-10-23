@@ -31,3 +31,8 @@ dist-ssr
 
 # Ensure we never have stale type declarations for our ports
 src/Main.elm.d.ts
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/

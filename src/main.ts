@@ -15,10 +15,10 @@ const app = Elm.Main.init({
   flags: null,
 });
 
-const isProd = (): boolean => import.meta.env.PROD ?? false;
+const isProd = (): boolean => import.meta.env.PROD;
 
 Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN ?? "",
+  dsn: "https://b993e394b2e3581b7d53189f404260db@o4505920220692480.ingest.sentry.io/4506101001551872",
   debug: !isProd(),
   integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
 
@@ -28,7 +28,7 @@ Sentry.init({
   tracesSampleRate: 1.0,
 
   // Set `tracePropagationTargets` to control for which URLs distributed tracing should be enabled
-  tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
+  tracePropagationTargets: ["localhost", "https://venerable-fenglisu-8c0f2c.netlify.app"],
 
   // Capture Replay for 10% of all sessions,
   // plus for 100% of sessions with an error
@@ -43,7 +43,7 @@ export const prettyPrint = (
   title: string,
   messages: ReadonlyArray<string>,
 ): void => {
-  console.group(`%c[crispy-critters] ${title} ⥤`, css);
+  console.group(`%c[ffx-event-listener] ${title} ⥤`, css);
 
   match(level)
     .with("info", () => {

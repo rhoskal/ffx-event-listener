@@ -19,5 +19,5 @@ Flatfile debugging prototype. [View app](https://venerable-fenglisu-8c0f2c.netli
 
 ## Dev
 
-1. Install using using `make deps`
-2. Run dev server using `make run`
+1. Install deps via `make deps`
+2. Run dev server via `make run`
