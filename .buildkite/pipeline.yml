@@ -1,0 +1,86 @@
+steps:
+  - label: ":package: Install Dependencies"
+    key: deps
+    commands:
+      - ".buildkite/scripts/install_deps.sh"
+    # plugins:
+    #   - cache#v0.6.0:
+    #       manifest: pnpm-lock.yaml
+    #       path: node_modules
+    #       restore: pipeline
+    #       save: file
+    if: "!build.pull_request.draft"
+
+  - wait
+
+  - group: ":sleuth_or_spy: Static Analysis"
+    key: static
+    steps:
+      - label: ":prettier: prettier"
+        command: ".buildkite/scripts/format_prettier.sh"
+        # plugins:
+        #   - cache#v0.6.0:
+        #       manifest: pnpm-lock.yaml
+        #       path: node_modules
+        #       restore: file
+      - label: ":elm: elm-format"
+        command: ".buildkite/scripts/format_elm_format.sh"
+        # plugins:
+        #   - cache#v0.6.0:
+        #       manifest: elm.json
+        #       path: elm-stuff
+        #       restore: file
+      - label: ":eslint: eslint"
+        command: ".buildkite/scripts/lint_eslint.sh"
+        # plugins:
+        #   - cache#v0.6.0:
+        #       manifest: pnpm-lock.yaml
+        #       path: node_modules
+        #       restore: file
+      - label: ":elm: elm-review"
+        command: ".buildkite/scripts/lint_elm_review.sh"
+    if: "!build.pull_request.draft"
+
+  - group: ":lock_with_ink_pen: Security Audits"
+    key: audits
+    steps:
+      - label: ":pnpm: pnpm audit"
+        command: ".buildkite/scripts/pnpm_audit.sh"
+        # plugins:
+        #   - cache#v0.6.0:
+        #       manifest: pnpm-lock.yaml
+        #       path: node_modules
+        #       restore: file
+    if: "!build.pull_request.draft"
+
+  - wait
+
+  - group: ":test_tube: Tests"
+    key: tests
+    steps:
+      - label: ":elm: Unit Tests"
+        command: ".buildkite/scripts/test_elm_test.sh"
+        # plugins:
+        #   - cache#v0.6.0:
+        #       manifest: elm.json
+        #       path: elm-stuff
+        #       restore: file
+      - label: ":playwright: E2E Tests"
+        command: ".buildkite/scripts/test_playwright.sh"
+        # plugins:
+        #   - cache#v0.6.0:
+        #       manifest: pnpm-lock.yaml
+        #       path: node_modules
+        #       restore: file
+        env:
+          NODE_ENV: "test"
+    if: "!build.pull_request.draft"
+
+  - label: ":rocket: Deploy to Netlify"
+    key: "deploy"
+    command: "echo 'coming soon...'"
+    branches: "main"
+    concurrency: 1
+    concurrency_group: "ffx-event-listener/deploy"
+    depends_on:
+      - tests

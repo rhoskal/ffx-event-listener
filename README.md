@@ -1,5 +1,5 @@
 <p align="center">
-  <img alt="build status badge" src="https://github.com/hansjhoffman/crispy-critters/actions/workflows/main.yml/badge.svg?branch=main" />
+  <img alt="build status badge" src="https://badge.buildkite.com/0dd3611b72c9a1ce418262de97a3bd7f38122b25b8f93e385e.svg" />
   <img alt="netlify status badge" src="https://api.netlify.com/api/v1/badges/90e779a4-f481-48eb-98d0-e47ab7d278e8/deploy-status" />
 </p>
 
