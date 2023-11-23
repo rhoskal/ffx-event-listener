@@ -59,7 +59,7 @@ preview: build ## See what the production build will look like
 
 .PHONY: run
 run: ## Run web app
-	pnpm vite --https --port 4001
+	pnpm vite --port 4001
 
 # Check, lint, format and test targets
 # ------------------------------------

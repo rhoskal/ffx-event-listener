@@ -1,13 +1,20 @@
 steps:
   - label: ":package: Install Dependencies"
     key: deps
-    command: ".buildkite/scripts/install_deps.sh"
-    # plugins:
-    #   - cache#v0.6.0:
-    #       manifest: pnpm-lock.yaml
-    #       path: node_modules
-    #       restore: pipeline
-    #       save: file
+    command: "scripts/install_deps"
+    plugins:
+      - cache#v0.6.0:
+          manifest: pnpm-lock.yaml
+          path: node_modules
+          restore: pipeline
+          save: file
+          compression: tgz
+      - cache#v0.6.0:
+          manifest: elm.json
+          path: elm-stuff
+          restore: pipeline
+          save: file
+          compression: tgz
     if: "!build.pull_request.draft"
 
   - wait
@@ -16,40 +23,43 @@ steps:
     key: static
     steps:
       - label: ":prettier: prettier"
-        command: ".buildkite/scripts/format_prettier.sh"
-        # plugins:
-        #   - cache#v0.6.0:
-        #       manifest: pnpm-lock.yaml
-        #       path: node_modules
-        #       restore: file
+        command: "scripts/format_prettier"
+        plugins:
+          - cache#v0.6.0:
+              manifest: pnpm-lock.yaml
+              path: node_modules
+              restore: file
+              compression: tgz
       - label: ":elm: elm-format"
-        command: ".buildkite/scripts/format_elm_format.sh"
+        command: "scripts/format_elm_format"
         # plugins:
         #   - cache#v0.6.0:
         #       manifest: elm.json
         #       path: elm-stuff
         #       restore: file
       - label: ":eslint: eslint"
-        command: ".buildkite/scripts/lint_eslint.sh"
-        # plugins:
-        #   - cache#v0.6.0:
-        #       manifest: pnpm-lock.yaml
-        #       path: node_modules
-        #       restore: file
+        command: "scripts/lint_eslint"
+        plugins:
+          - cache#v0.6.0:
+              manifest: pnpm-lock.yaml
+              path: node_modules
+              restore: file
+              compression: tgz
       - label: ":elm: elm-review"
-        command: ".buildkite/scripts/lint_elm_review.sh"
+        command: "scripts/lint_elm_review"
     if: "!build.pull_request.draft"
 
   - group: ":lock_with_ink_pen: Security Audits"
     key: audits
     steps:
       - label: ":pnpm: pnpm audit"
-        command: ".buildkite/scripts/pnpm_audit.sh"
-        # plugins:
-        #   - cache#v0.6.0:
-        #       manifest: pnpm-lock.yaml
-        #       path: node_modules
-        #       restore: file
+        command: "scripts/pnpm_audit"
+        plugins:
+          - cache#v0.6.0:
+              manifest: pnpm-lock.yaml
+              path: node_modules
+              restore: file
+              compression: tgz
     if: "!build.pull_request.draft"
 
   - wait
@@ -58,28 +68,20 @@ steps:
     key: tests
     steps:
       - label: ":elm: Unit Tests"
-        command: ".buildkite/scripts/test_elm_test.sh"
+        command: "scripts/test_elm_test"
         # plugins:
         #   - cache#v0.6.0:
         #       manifest: elm.json
         #       path: elm-stuff
         #       restore: file
       - label: ":playwright: E2E Tests"
-        command: ".buildkite/scripts/test_playwright.sh"
-        # plugins:
-        #   - cache#v0.6.0:
-        #       manifest: pnpm-lock.yaml
-        #       path: node_modules
-        #       restore: file
+        command: "scripts/test_playwright"
+        plugins:
+          - cache#v0.6.0:
+              manifest: pnpm-lock.yaml
+              path: node_modules
+              restore: file
+              compression: tgz
         env:
           NODE_ENV: "test"
     if: "!build.pull_request.draft"
-
-  - label: ":rocket: Deploy to Netlify"
-    key: "deploy"
-    command: "echo 'coming soon...'"
-    branches: "main"
-    concurrency: 1
-    concurrency_group: "ffx-event-listener/deploy"
-    depends_on:
-      - tests
