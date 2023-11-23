@@ -1,8 +1,7 @@
 steps:
   - label: ":package: Install Dependencies"
     key: deps
-    commands:
-      - ".buildkite/scripts/install_deps.sh"
+    command: ".buildkite/scripts/install_deps.sh"
     # plugins:
     #   - cache#v0.6.0:
     #       manifest: pnpm-lock.yaml
