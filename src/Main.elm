@@ -1025,7 +1025,7 @@ viewAgentsTable model =
 
 view : Model -> Browser.Document Msg
 view model =
-    { title = "Crispy Critters"
+    { title = "FFX Event Listener"
     , body =
         [ div [ Attr.class "w-4/5 m-auto mt-20" ]
             [ case model.maybeCred of

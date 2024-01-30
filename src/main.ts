@@ -1,11 +1,10 @@
-import PubNub from "pubnub";
+import * as Sentry from "@sentry/browser";
 import * as E from "fp-ts/Either";
+import { pipe } from "fp-ts/function";
 import * as IO from "fp-ts/IO";
 import * as J from "fp-ts/Json";
-import { pipe } from "fp-ts/function";
+import PubNub from "pubnub";
 import { match } from "ts-pattern";
-import * as Sentry from "@sentry/browser";
-import { BrowserTracing } from "@sentry/tracing";
 
 import { Elm } from "./Main.elm";
 import "./globals.css";
@@ -16,17 +15,25 @@ const app = Elm.Main.init({
   flags: null,
 });
 
-const isProd = (): boolean => import.meta.env.PROD ?? false;
+const isProd = (): boolean => import.meta.env.PROD;
 
 Sentry.init({
-  dsn: import.meta.env.VITE_SENTRY_DSN ?? "",
+  dsn: "https://b993e394b2e3581b7d53189f404260db@o4505920220692480.ingest.sentry.io/4506101001551872",
   debug: !isProd(),
-  integrations: [new BrowserTracing()],
+  integrations: [new Sentry.BrowserTracing(), new Sentry.Replay()],
 
   // Set tracesSampleRate to 1.0 to capture 100%
   // of transactions for performance monitoring.
   // We recommend adjusting this value in production
   tracesSampleRate: 1.0,
+
+  // Set `tracePropagationTargets` to control for which URLs distributed tracing should be enabled
+  tracePropagationTargets: ["localhost", "https://venerable-fenglisu-8c0f2c.netlify.app"],
+
+  // Capture Replay for 10% of all sessions,
+  // plus for 100% of sessions with an error
+  replaysSessionSampleRate: 0.1,
+  replaysOnErrorSampleRate: 1.0,
 });
 
 const css: string = "color: #ffffff; background-color: #4c48ef; padding: 4px;";
@@ -36,7 +43,7 @@ export const prettyPrint = (
   title: string,
   messages: ReadonlyArray<string>,
 ): void => {
-  console.group(`%c[crispy-critters] ${title} ⥤`, css);
+  console.group(`%c[ffx-event-listener] ${title} ⥤`, css);
 
   match(level)
     .with("info", () => {

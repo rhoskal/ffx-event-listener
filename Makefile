@@ -1,9 +1,9 @@
 # Build configuration
 # -------------------
 
-APP_NAME = `node -p "require('./package.json').name"`
-GIT_BRANCH=`git rev-parse --abbrev-ref HEAD`
-GIT_REVISION = `git rev-parse HEAD`
+APP_NAME := `node -p "require('./package.json').name"`
+GIT_BRANCH :=`git rev-parse --abbrev-ref HEAD`
+GIT_REVISION := `git rev-parse HEAD`
 
 # Introspection targets
 # ---------------------
@@ -36,30 +36,30 @@ targets:
 
 .PHONY: clean
 clean: ## Remove build artifacts
-	rm -rf dist
+	pnpm rimraf dist
 
 .PHONY: build
 build: compile-ts ## Make a production build
-	yarn vite build
+	pnpm vite build
 
 .PHONY: compile-ts
-compile-ts: ## Run Typscript compiler
-	make elm-ports && yarn tsc
+compile-ts: elm-ports ## Run Typscript compiler
+	pnpm tsc
 
 # Development targets
 # -------------------
 
 .PHONY: deps
 deps: ## Install all dependencies
-	yarn install
+	pnpm install
 
 .PHONY: preview
 preview: build ## See what the production build will look like
-	yarn vite preview --https
+	pnpm vite preview --https
 
 .PHONY: run
 run: ## Run web app
-	yarn vite --https --port 4000
+	pnpm vite --port 4001
 
 # Check, lint, format and test targets
 # ------------------------------------
@@ -68,46 +68,53 @@ run: ## Run web app
 format: format-elm format-ts ## Format everything
 
 .PHONY: format-elm
-format-elm: ## Format elm files
-	elm-format src/ review/ tests/ --yes
+format-elm: ## Format Elm files
+	pnpm elm-format src/ review/ tests/ --yes
 
 .PHONY: format-ts
-format-ts: ## Format typescript files
-	yarn prettier --write '**/*.ts'
+format-ts: ## Format Typescript files
+	pnpm prettier --write '{e2e,src}/**/*.{css,json,js,ts,mjs,mts}'
 
 .PHONY: lint
-lint: lint-elm lint-ts ## Lint elm & typescript files
+lint: lint-elm lint-ts ## Lint everything
 
 .PHONY: lint-elm
 lint-elm: ## Lint elm files
-	elm-review
+	pnpm elm-review
 
 .PHONY: lint-ts
 lint-ts: ## Lint ts files
-	yarn eslint '**/*.ts'
+	pnpm eslint '{e2e,src}/**/*.{js,ts,mjs,mts}'
+
+.PHONY: lint-fix
+lint-fix: lint-elm-fix lint-ts-fix ## Lint fix everything
 
 .PHONY: lint-elm-fix
-lint-elm-fix: ## Lint fix all elm files
-	elm-review --fix-all
+lint-elm-fix: ## Lint fix all Elm files
+	pnpm elm-review --fix-all
 
 .PHONY: lint-ts-fix
-lint-ts-fix: ## Lint fix all typescript files
-	yarn eslint '**/*.ts' --fix
+lint-ts-fix: ## Lint fix all Typescript files
+	pnpm eslint '{e2e,src}/**/*.{js,ts,mjs,mts}' --fix
 
 .PHONY: test
 test: test-elm ## Test code
 
 .PHONY: test-elm
-test-elm: ## Test elm code
-	elm-test
+test-elm: ## Test Elm code
+	pnpm elm-test
 
-.PHONY: test-ts
-test-ts: ## Test elm code
-	yarn jest
+.PHONY: test-e2e
+test-e2e: ## Test e2e w/o UI
+	NODE_ENV=test pnpm playwright test
+
+.PHONY: test-e2e-ui
+test-e2e-ui: ## Test e2e with UI
+	NODE_ENV=test pnpm playwright test --ui
 
 # Other targets
 # -------------------
 
 .PHONY: elm-ports
 elm-ports: ## Generate type declaration file for typescript interop
-	yarn elm-ts-interop -o src/Main.elm.d.ts
+	pnpm elm-ts-interop -o src/Main.elm.d.ts

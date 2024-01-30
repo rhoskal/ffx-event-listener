@@ -1,0 +1,87 @@
+steps:
+  - label: ":package: Install Dependencies"
+    key: deps
+    command: "scripts/install_deps"
+    plugins:
+      - cache#v0.6.0:
+          manifest: pnpm-lock.yaml
+          path: node_modules
+          restore: pipeline
+          save: file
+          compression: tgz
+      - cache#v0.6.0:
+          manifest: elm.json
+          path: elm-stuff
+          restore: pipeline
+          save: file
+          compression: tgz
+    if: "!build.pull_request.draft"
+
+  - wait
+
+  - group: ":sleuth_or_spy: Static Analysis"
+    key: static
+    steps:
+      - label: ":prettier: prettier"
+        command: "scripts/format_prettier"
+        plugins:
+          - cache#v0.6.0:
+              manifest: pnpm-lock.yaml
+              path: node_modules
+              restore: file
+              compression: tgz
+      - label: ":elm: elm-format"
+        command: "scripts/format_elm_format"
+        # plugins:
+        #   - cache#v0.6.0:
+        #       manifest: elm.json
+        #       path: elm-stuff
+        #       restore: file
+      - label: ":eslint: eslint"
+        command: "scripts/lint_eslint"
+        plugins:
+          - cache#v0.6.0:
+              manifest: pnpm-lock.yaml
+              path: node_modules
+              restore: file
+              compression: tgz
+      - label: ":elm: elm-review"
+        command: "scripts/lint_elm_review"
+    if: "!build.pull_request.draft"
+
+  - group: ":lock_with_ink_pen: Security Audits"
+    key: audits
+    steps:
+      - label: ":pnpm: pnpm audit"
+        command: "scripts/pnpm_audit"
+        plugins:
+          - cache#v0.6.0:
+              manifest: pnpm-lock.yaml
+              path: node_modules
+              restore: file
+              compression: tgz
+    if: "!build.pull_request.draft"
+
+  - wait
+
+  - group: ":test_tube: Tests"
+    key: tests
+    steps:
+      - label: ":elm: Unit Tests"
+        command: "scripts/test_elm_test"
+        # plugins:
+        #   - cache#v0.6.0:
+        #       manifest: elm.json
+        #       path: elm-stuff
+        #       restore: file
+      - label: ":playwright: E2E Tests"
+        command: "scripts/test_playwright"
+        plugins:
+          - cache#v0.6.0:
+              manifest: pnpm-lock.yaml
+              path: node_modules
+              restore: file
+              compression: tgz
+        env:
+          NODE_ENV: "test"
+    if: "!build.pull_request.draft"

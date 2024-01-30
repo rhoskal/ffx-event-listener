@@ -1,15 +1,10 @@
 <p align="center">
-  <img alt="build status badge" src="https://github.com/hansjhoffman/crispy-critters/actions/workflows/main.yml/badge.svg?branch=main" />
-  <img alt="netlify status badge" src="https://api.netlify.com/api/v1/badges/90e779a4-f481-48eb-98d0-e47ab7d278e8/deploy-status" />
-  <img alt="made with elm badge" src="https://img.shields.io/badge/%3C%2F%3E-Elm-%230074c1.svg" />
-  <img alt="made with typescript badge" src="https://img.shields.io/badge/%3C%2F%3E-Typesript-%230074c1.svg" />
-  <img alt="code style prettier badge" src="https://img.shields.io/badge/code_style-prettier-ff69b4.svg?style=flat" />
-  <img alt="mit license badge" src="https://img.shields.io/badge/License-MIT-blue.svg" />
+  <img alt="build status badge" src="https://badge.buildkite.com/0dd3611b72c9a1ce418262de97a3bd7f38122b25b8f93e385e.svg" />
 </p>
 
 ---
 
-Flatfile debugging prototype. [View app](https://venerable-fenglisu-8c0f2c.netlify.app)
+Flatfile debugging prototype.
 
 <img width="1728" alt="Dashboard" src="https://user-images.githubusercontent.com/9221098/235733269-cdf75fbd-88e8-433f-b7cb-33291d8f1e05.png">
 
@@ -19,9 +14,14 @@ Flatfile debugging prototype. [View app](https://venerable-fenglisu-8c0f2c.netli
 
 ## Setup (w/o Nix)
 
-1. `yarn global add elm`
+1. `pnpm add -g elm`
 
 ## Dev
 
-1. Install using using `make deps`
-2. Run dev server using `make run`
+1. Install deps via `make deps`
+2. Run dev server via `make run`
+
+## Run with
+
+1. docker build . -t ffx-event-listener
+2. docker run -p 443:443 ffx-event-listener
