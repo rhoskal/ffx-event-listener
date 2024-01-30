@@ -1,0 +1,7 @@
+version: "3.9"
+
+services:
+  ffx-event-listener:
+    build: .
+    ports:
+      - "443:443"

@@ -72,7 +72,7 @@ export default defineConfig({
 
   /* Run your local dev server before starting the tests */
   webServer: {
-    command: "pnpm vite --https --port 4001",
+    command: "pnpm vite --port 4001",
     url: "https://localhost:4001",
     ignoreHTTPSErrors: true,
     reuseExistingServer: !process.env.CI,

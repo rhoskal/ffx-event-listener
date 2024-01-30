@@ -4,7 +4,6 @@ let
 
   basePackages = [
     pkgs.elmPackages.elm
-    pkgs.elmPackages.elm-language-server
     pkgs.nixfmt
     pkgs.nodejs_20
     pkgs.nodePackages.pnpm

@@ -69,7 +69,7 @@ format: format-elm format-ts ## Format everything
 
 .PHONY: format-elm
 format-elm: ## Format Elm files
-	elm-format src/ review/ tests/ --yes
+	pnpm elm-format src/ review/ tests/ --yes
 
 .PHONY: format-ts
 format-ts: ## Format Typescript files
@@ -80,7 +80,7 @@ lint: lint-elm lint-ts ## Lint everything
 
 .PHONY: lint-elm
 lint-elm: ## Lint elm files
-	elm-review
+	pnpm elm-review
 
 .PHONY: lint-ts
 lint-ts: ## Lint ts files
@@ -91,7 +91,7 @@ lint-fix: lint-elm-fix lint-ts-fix ## Lint fix everything
 
 .PHONY: lint-elm-fix
 lint-elm-fix: ## Lint fix all Elm files
-	elm-review --fix-all
+	pnpm elm-review --fix-all
 
 .PHONY: lint-ts-fix
 lint-ts-fix: ## Lint fix all Typescript files
@@ -102,7 +102,7 @@ test: test-elm ## Test code
 
 .PHONY: test-elm
 test-elm: ## Test Elm code
-	elm-test
+	pnpm elm-test
 
 .PHONY: test-e2e
 test-e2e: ## Test e2e w/o UI
